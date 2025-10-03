@@ -1,0 +1,64 @@
+# LaTeX编译生成的文件
+*.aux
+*.log
+*.out
+*.pdf
+*.dvi
+*.ps
+*.bbl
+*.blg
+*.toc
+*.lot
+*.lof
+*.idx
+*.ind
+*.ilg
+*.glo
+*.gls
+*.alg
+*.acr
+*.acn
+*.glg
+*.ist
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.tdo
+*.run.xml
+*.bcf
+*.nav
+*.snm
+*.vrb
+*.figlist
+*.makefile
+*.pdfsync
+*.pygtex
+*.pygstyle
+*.fdb_latexmk
+*.synctex(busy)
+
+# 编辑器临时文件
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# IDE项目文件
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# macOS系统文件
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows系统文件
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# 临时文件
+texput.log
