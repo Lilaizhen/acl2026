@@ -1,0 +1,20 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Ablation study: Impact of genetic algorithm components on attack success rate}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Configuration} & \textbf{Success Rate} & \textbf{Avg. Generations} \\
+\midrule
+Full GA (crossover + mutation + selection) & 73.2\% & 41.3 \\
+\quad - No crossover & 64.7\% & 52.8 \\
+\quad - No mutation & 59.1\% & 48.7 \\
+\quad - Random selection & 61.8\% & 56.2 \\
+\quad - No semantic constraints & 45.3\% & 38.1 \\
+\midrule
+Random search baseline & 23.1\% & N/A \\
+Grid search baseline & 31.7\% & N/A \\
+\bottomrule
+\end{tabular}
+\label{tab:ablation-study}
+\end{table}

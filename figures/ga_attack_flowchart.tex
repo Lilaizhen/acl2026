@@ -1,0 +1,117 @@
+% 算法流程图 - 遗传算法攻击生成\begin{tikzpicture}[
+    node distance = 1.5cm,
+    auto,
+    font=\footnotesize,
+    % 样式定义 - 使用基本形状
+    input/.style={
+        rectangle, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm,
+        text centered, draw=blue!60, fill=blue!10, thick
+    },
+    process/.style={
+        rectangle, minimum width=2.8cm, minimum height=0.8cm,
+        text centered, draw=orange!60, fill=orange!10, thick
+    },
+    decision/.style={
+        diamond, minimum width=2.2cm, minimum height=0.6cm,
+        text centered, draw=green!60, fill=green!10, thick
+    },
+    emphasis/.style={
+        rectangle, minimum width=2.8cm, minimum height=0.8cm,
+        text centered, draw=red!60, fill=red!10, thick, dashed
+    },
+    output/.style={
+        rectangle, rounded corners=4pt, minimum width=2.8cm, minimum height=0.8cm,
+        text centered, draw=purple!60, fill=purple!10, thick
+    },
+    arrow/.style={thick,->,>=stealth}
+]
+
+% 1. 输入层 - 简化版本
+\node (input) [input] at (0,0) {
+    \textbf{Input:}\\
+    Task Context $u$, \\
+    Parameters: $m$, $n$
+};
+
+% 2. 初始化
+\node (init) [process, below of=input] {
+    \textbf{Initialize}\\
+    $\mathcal{P} = \{\text{InitGen}(u)\}_{i=1}^{m}$
+};
+
+% 3. 评估适应度
+\node (evaluate) [process, below of=init] {
+    \textbf{Evaluate}\\
+    Score each tool \\
+    using fitness $F(T)$
+};
+
+% 4. 选择top-k
+\node (select) [process, below of=evaluate] {
+    \textbf{Select Top-k}\\
+    $\mathcal{S} \leftarrow \text{top-}k(\mathcal{P}, F)$
+};
+
+% 5. 双重选择策略分支 - 并排排列
+\node (exploit) [process, below of=select, xshift=-2cm, yshift=-1cm] {
+    \textbf{Best Individual}\\
+    $T^* = \arg\max F(T)$
+};
+
+\node (explore) [emph, below of=select, xshift=2cm, yshift=-1cm] {
+    \textbf{Farthest Individual}\\
+    $T_j = \arg\max \mathrm{dist}(e_T, e_{T^*})$
+};
+
+% 6. 语义交叉 (核心创新)
+\node (crossover) [emph, below of=select, yshift=-2.5cm] {
+    \textbf{Semantic Crossover}\\
+    $\mathcal{C}(T^*, T_j)$ \\
+    {\small \textcolor{red}{\textbf{Key Step}}}
+};
+
+% 7. 生成新个体
+\node (offspring) [process, below of=crossover] {
+    \textbf{Generate}\\
+    New offspring tool
+};
+
+% 8. 更新种群
+\node (update) [process, below of=offspring] {
+    \textbf{Update}\\
+    $\mathcal{P} \leftarrow \mathcal{P} \cup \{\text{offspring}\}$
+};
+
+% 9. 迭代判定
+\node (decide) [decision, below of=update, yshift=-0.5cm] {
+    More\\
+    iterations?
+};
+
+% 10. 最终输出
+\node (output) [output, right of=decide, xshift=3cm, yshift=-0.8cm] {
+    \textbf{Output}\\
+    Best Tool \\
+    $T_{\text{adv}}^*$
+};
+
+% 主要流程连接
+\draw [arrow] (input) -- (init);
+\draw [arrow] (init) -- (evaluate);
+\draw [arrow] (evaluate) -- (select);
+\draw [arrow] (select) -- (exploit);
+\draw [arrow] (select) -- (explore);
+\draw [arrow] (exploit) -- (crossover);
+\draw [arrow] (explore) -- (crossover);
+\draw [arrow] (crossover) -- (offspring);
+\draw [arrow] (offspring) -- (update);
+\draw [arrow] (update) -- (decide);
+\draw [arrow] (decide.east) -- node[above] {\small No} (output.west);
+\draw [arrow] (decide.west) -- +(-2,0) -- +(-2,8.5) -- +(-8,8.5) -- +(-8,1.8) -- (evaluate.west);
+\node[left] at (-9,-7) {\small Yes};
+
+% 关键创新标注
+\node[right=0.1cm of explore.east, text width=3.5cm] {\tiny \textcolor{red}{\textbf{Novel: Semantic\\diversity selection}}};
+\node[left=0.1cm of exploit.west, text width=2cm] {\tiny \textbf{Best fitness}};
+
+\end{tikzpicture}

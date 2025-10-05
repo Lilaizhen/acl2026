@@ -1,0 +1,50 @@
+% Simplified Algorithm Flowchart for ACL Template Compatibility
+\begin{tikzpicture}[
+    every node/.style={font=\footnotesize},
+    node distance = 1.2cm]
+
+% Basic style definitions
+\tikzstyle{startstop}=[rectangle, rounded corners=3pt, minimum width=2.5cm, minimum height=0.7cm, text centered, draw=black, fill=blue!10]
+\tikzstyle{process}=[rectangle, minimum width=2.5cm, minimum height=0.7cm, text centered, draw=black, fill=yellow!10]
+\tikzstyle{decision}=[diamond, minimum width=2cm, minimum height=0.6cm, text centered, draw=black, fill=green!10, inner sep=1pt]
+\tikzstyle{arrow}=[->,>=stealth, thick]
+
+% Flowchart nodes
+\node (start) [startstop] {Start: Input Task Context $u$};
+\node (init) [process, below of=start] {Initialize Population $\mathcal{P}$};
+\node (evaluate) [process, below of=init] {Evaluate Fitness $F(T)$};
+\node (select) [process, below of=evaluate] {Select Top-k Individuals};
+
+% Dual selection branch
+\node (branch) [process, below of=select] {Dual Selection Strategy};
+\node (best) [process, left of=branch, xshift=-2cm, yshift=-1cm] {$T^* = \arg\max F(T)$\\[Exploitation]};
+\node (farthest) [process, right of=branch, xshift=2cm, yshift=-1cm] {$T_j = \arg\max \mathrm{dist}(e_T, e_{T^*})$\\[Exploration]};
+
+% Crossover and offspring
+\node (crossover) [process, below of=branch, yshift=-2.2cm] {Semantic Crossover $\mathcal{C}(T^*, T_j)$};
+\node (offspring) [process, below of=crossover] {Generate Offspring};
+\node (update) [process, below of=offspring] {Update Population};
+
+% Decision and loop
+\node (decide) [decision, below of=update] {Iteration\\complete?};
+\node (output) [startstop, right of=decide, xshift=3.5cm, yshift=-1cm] {Output Best Tool $T_{\text{adv}}^*$};
+
+% Connections
+\draw [arrow] (start) -- (init);
+\draw [arrow] (init) -- (evaluate);
+\draw [arrow] (evaluate) -- (select);
+\draw [arrow] (select) -- (branch);
+\draw [arrow] (branch) -| (best);
+\draw [arrow] (branch) -| (farthest);
+\draw [arrow] (best) |- (crossover);
+\draw [arrow] (farthest) |- (crossover);
+\draw [arrow] (crossover) -- (offspring);
+\draw [arrow] (offspring) -- (update);
+\draw [arrow] (update) -- (decide);
+\draw [arrow] (decide) -- node[above] {Yes} (output);
+\draw [arrow] (decide) -| node[left] {No} ++(-2,2.2) -- ++(-10,0) |- (evaluate);
+
+% Annotation
+\node[right=0.2cm of farthest.east, text width=3cm, font=\tiny] {\textcolor{red}{\textbf{Key Innovation}}\\Semantic diversity ensures broad attack exploration};
+
+\end{tikzpicture}

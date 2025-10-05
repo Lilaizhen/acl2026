@@ -1,0 +1,19 @@
+\begin{algorithm}[t]
+\caption{Semantic MCP Tool Hijacking Semantic Attack Generation}
+\label{alg:genetic-attack}
+\begin{algorithmic}[1]
+\Statex \textbf{Input:} Target MCP tool set $\mathcal{T}$, attack objectives $\mathcal{A}$, population size $N$, generations $G$
+\Statex \textbf{Output:} Optimized attack prompts $\{p_i\}_{i=1}^N$
+
+\State Initialize population $\mathcal{P}_0 = \{p_j\}_{j=1}^N$ with random prompts
+\For{$g = 1$ to $G$}
+    \State Evaluate fitness: $\mathcal{F}(p_j)$ for each $p_j \in \mathcal{P}_{g-1}$
+    \State Select parents using tournament selection
+    \State Generate offspring through crossover and mutation
+    \State Apply semantic constraints to maintain attack validity
+    \State Update population: $\mathcal{P}_g = \sigma(\mathcal{P}_{g-1} \cup \text{offspring})$
+\EndFor
+\State \Return best attack prompts from final population
+
+\end{algorithmic}
+\end{algorithm}

@@ -1,0 +1,69 @@
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[review]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{tikz}
+
+
+% Mathematical notation and shared commands
+\input{common}
+
+\title{One Tool to Rule Them All: Hijacking AI Agents via a Single Malicious MCP Tool}
+
+\author{Anonymous Authors}
+
+\begin{document}
+\maketitle
+\input{abstract}
+
+\input{intro}
+
+\input{related}
+
+\input{method}
+
+\input{results}
+
+\input{conclusion}
+
+
+
+\section*{Limitations}
+\input{limitations}
+
+\section*{Acknowledgments}
+\input{acknowledgments}
+
+% Bibliography entries for the entire Anthology, followed by custom entries
+\bibliography{reference,custom}
+
+\input{appendix}
+
+\end{document}

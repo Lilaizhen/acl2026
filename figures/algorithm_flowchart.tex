@@ -1,0 +1,72 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+    node distance = 2cm,
+    startstop/.style = {rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=red!30},
+    process/.style = {rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30},
+    decision/.style = {diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30},
+    arrow/.style = {thick,->,>=stealth}
+]
+
+% 起始节点
+\node (start) [startstop] {Start: Task Context $u$};
+
+% 初始化
+\node (init) [process, below of=start] {Initialize Population\\$\mathcal{P} \leftarrow \{\text{InitGen}(u)\}_{i=1}^{m}$};
+
+% 迭代开始
+\node (loop) [process, below of=init] {Iteration $t = 1$ to $n$};
+
+% 评估适应度
+\node (evaluate) [process, below of=loop] {Compute Fitness\\$F(T)$ for each $T \in \mathcal{P}$};
+
+% 选择top-k
+\node (select) [process, below of=evaluate] {Select Top-k\\$\mathcal{S} \leftarrow \text{top-}k(\mathcal{P}, F)$};
+
+% 找到最优
+\node (best) [process, below of=select] {Find Best Individual\\$T^* \leftarrow \arg\max_{T\in\mathcal{S}} F(T)$};
+
+% 计算嵌入
+\node (embed) [process, below of=best] {Compute Embeddings\\$e_T \leftarrow \mathrm{Embed}(T)$ for $T\in\mathcal{S}$};
+
+% 语义最远距离选择
+\node (farthest) [process, below of=embed] {Select Farthest Individual\\$T_j \leftarrow \arg\max_{T\in\mathcal{S}\setminus\{T^*\}} \mathrm{dist}(e_T, e_{T^*})$};
+
+% 交叉操作
+\node (crossover) [process, below of=farthest] {Semantic Crossover\\offspring $\leftarrow \mathcal{C}(T^*, T_j)$\\[LLM-based validity check]};
+
+% 更新种群
+\node (update) [process, below of=crossover] {Update Population\\$\mathcal{P} \leftarrow \mathcal{P} \cup \{\text{offspring}\}$};
+
+% 决策点
+\node (decision) [decision, right of=loop, xshift=4cm] {$t < n$?};
+
+% 最终结果
+\node (final) [process, right of=best, xshift=4cm] {Select Best\\$T_{\text{adv}}^* \leftarrow \arg\max_{T\in\mathcal{P}} F(T)$};
+
+% 结束
+\node (end) [startstop, right of=final, xshift=3cm] {Return $T_{\text{adv}}^*$};
+
+% 箭头连接
+\draw [arrow] (start) -- (init);
+\draw [arrow] (init) -- (loop);
+\draw [arrow] (loop) -- (evaluate);
+\draw [arrow] (evaluate) -- (select);
+\draw [arrow] (select) -- (best);
+\draw [arrow] (best) -- (embed);
+\draw [arrow] (embed) -- (farthest);
+\draw [arrow] (farthest) -- (crossover);
+\draw [arrow] (crossover) -- (update);
+\draw [arrow] (update) -- (decision);
+\draw [arrow] (decision) -- node[anchor=south] {Yes} (loop);
+\draw [arrow] (decision) -- node[anchor=west] {No} (final);
+\draw [arrow] (final) -- (end);
+
+% 标注关键步骤
+\node [above right] at (crossover.north east) {\small \textbf{Key Step}};
+\node [below right, text width=3cm] at (farthest.south east) {\small \emph{Semantic diversity exploration}};
+
+\end{tikzpicture}
+\caption{SMTH Algorithm Flowchart. The algorithm iteratively evolves adversarial tools by balancing exploitation of high-fitness individuals (T*) with exploration of semantically diverse candidates (Tj).}}
+\label{fig:algorithm-flowchart}
+\end{figure*}

@@ -1,0 +1,140 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+    node distance = 2.2cm,
+    auto,
+    font=\small,
+    startstop/.style = {rectangle, rounded corners=8pt, minimum width=3.5cm, minimum height=1cm, text centered, draw=black, fill=blue!30, thick},
+    process/.style = {rectangle, minimum width=3.5cm, minimum height=1cm, text centered, draw=black, fill=yellow!30, thick},
+    decision/.style = {diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30, thick},
+    io/.style = {trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=cyan!30, thick},
+    arrow/.style = {thick,->,>=stealth, line width=1.2pt},
+    emph/.style = {rectangle, minimum width=3.5cm, minimum height=1cm, text centered, draw=red, fill=magenta!20, thick, dashed}
+]
+
+% 颜色定义
+\definecolor{lightblue}{RGB}{173,216,230}
+\definecolor{lightgreen}{RGB}{144,238,144}
+\definecolor{lightsalmon}{RGB}{255,160,122}
+\definecolor{lightyellow}{RGB}{255,255,224}
+
+% 起始输入
+\node (input) [io] {Input: Task Context $u$, Seed size $m$, Iterations $n$};
+
+% 初始化
+\node (init) [process, below of=input, yshift=-0.5cm] {
+    \textbf{Initialize Population}\\
+    $\mathcal{P} \leftarrow \{\text{InitGen}(u)\}_{i=1}^{m}$
+};
+
+% 迭代框背景
+\node (iterationbox) [draw=gray!50, dashed, rounded corners=10pt, fit=(current bounding box.south west)(current bounding box.south east), inner sep=10pt, minimum height=15cm] {};
+\node at (iterationbox.north) [above=5pt] {\large \textbf{\textcolor{gray!70}{Evolution Loop (1 to n iterations}}};
+
+% 评估适应度
+\node (evaluate) [process, below of=init, yshift=-0.5cm] {
+    \textbf{Fitness Evaluation}\\
+    Compute $F(T)$ for each $T \in \mathcal{P}$\\
+    [Objective: Resource exhaustion / Task failure]
+};
+
+% 选择操作
+\node (select) [process, below of=evaluate] {
+    \textbf{Selection}\\
+    $\mathcal{S} \leftarrow \text{top-}k(\mathcal{P}, F)$
+};
+
+% 找到最优个体
+\node (best) [process, below of=select] {
+    \textbf{Best Individual}\\
+    $T^* \leftarrow \arg\max_{T\in\mathcal{S}} F(T)$\\
+    [Exploitation]
+};
+
+% 语义嵌入
+\node (embed) [process, below of=best] {
+    \textbf{Semantic Embedding}\\
+    $e_T \leftarrow \mathrm{Embed}(T)$ for $T\in\mathcal{S}$
+};
+
+% 语义最远距离（关键创新点）
+\node (farthest) [emph, below of=embed] {
+    \textbf{Farthest Individual Selection}\\
+    $T_j \leftarrow \arg\max_{T\in\mathcal{S}\setminus\{T^*\}} \mathrm{dist}(e_T, e_{T^*})$\\
+    [\textcolor{red}{\textbf{Key Innovation: Semantic Diversity}}]
+};
+
+% 语义交叉（核心步骤）
+\node (crossover) [emph, below of=farthest] {
+    \textbf{Semantic Crossover}\\
+    offspring $\leftarrow \mathcal{C}(T^*, T_j)$\\
+    \textcolor{red}{LLM-based Validity Check}
+};
+
+% 更新种群
+\node (update) [process, below of=crossover] {
+    \textbf{Update Population}\\
+    $\mathcal{P} \leftarrow \mathcal{P} \cup \{\text{offspring}\}$\\
+    Optional: Prune / Re-rank
+};
+
+% 决策节点
+\node (decision) [decision, right of=evaluate, xshift=5.5cm] {
+    Iteration\\
+    $t < n$?
+};
+
+% 最终选择
+\node (final) [io, right of=best, xshift=5.5cm] {
+    \textbf{Final Selection}\\
+    $T_{\text{adv}}^* \leftarrow \arg\max_{T\in\mathcal{P}} F(T)$
+};
+
+% 输出
+\node (output) [io, below of=final] {
+    \textbf{Output}\\
+    Best Adversarial Tool $T_{\text{adv}}^*$
+};
+
+% 完成
+\node (end) [startstop, below of=output] {
+    Attack Evaluation on MCP Agent
+};
+
+% 背景框 - 关键创新区域
+\begin{scope}[on background layer]
+\node[circle, draw=red!70, dashed, minimum size=6cm, fill=red!5] at (farthest) {};
+\node[above=0.2cm of farthest.north, red] {\small \textbf{Key Innovation Area}};
+\end{scope}
+
+% 箭头连接 - 主流程
+\draw [arrow] (input) -- (init);
+\draw [arrow] (init) -- (evaluate);
+\draw [arrow] (evaluate) -- (select);
+\draw [arrow] (select) -- (best);
+\draw [arrow] (best) -- (embed);
+\draw [arrow] (embed) -- (farthest);
+\draw [arrow] (farthest) -- (crossover);
+\draw [arrow] (crossover) -- (update);
+\draw [arrow] (update) -- +(3,0) |- (decision);
+\draw [arrow] (decision) -- node[anchor=south] {\textbf{Yes}} +(0,2) |- (evaluate);
+\draw [arrow] (decision) -- node[anchor=west] {\textbf{No}} (final);
+\draw [arrow] (final) -- (output);
+\draw [arrow] (output) -- (end);
+
+% 辅助说明箭头
+\draw [arrow, bend left=30, dashed, gray] (best.east) -- node[anchor=south, sloped] {\tiny exploitation} (farthest.east);
+\draw [arrow, bend right=30, dashed, gray] (farthest.west) -- node[anchor=north, sloped] {\tiny exploration} (crossover.west);
+
+% 标注关键概念
+\node[above right=0.3cm and 0.1cm of farthest.east, text width=4cm, align=left] {\small \textcolor{red}{\textbf{Semantic Diversity:}}\\
+\small Balance local search (T*) with global exploration (Tj)};
+
+\node[below=0.5cm of update.south, text width=6cm, align=center] {\small \textcolor{blue}{Population maintains diversity while improving fitness}};
+
+\end{tikzpicture}
+\caption{Algorithm Flowchart: SMTH for Adversarial MCP Tool Generation.
+The algorithm balances exploitation of high-fitness individuals with exploration of semantically diverse candidates through a genetic evolution framework.
+Key innovation lies in the semantic distance selection ($T_j$) that ensures diversity in the tool population.}}
+\label{fig:algorithm-flowchart-advanced}
+\end{figure*}

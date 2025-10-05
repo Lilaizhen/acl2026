@@ -1,0 +1,112 @@
+\section{Method}
+
+\subsection{Key Observations and Insights}
+
+We study the behavior of MCP-based agents under adversarial tool injection. The tool-definition space is open-ended: each tool consists of a name, a description, and an output, all expressed in natural language. This flexibility makes exhaustive search or manual crafting of adversarial tools infeasible.
+
+Within this space, we observe that even a single malicious tool is sufficient to compromise agent behavior. Other tools may remain benign, yet one adversarial definition can redirect execution and cause harmful outcomes, including excessive resource consumption, task failure, and leakage of sensitive information.
+
+Further analysis shows that adversarial effectiveness depends on both semantic similarity and diversity. High-fitness tools emerge when a candidate aligns closely with the agent’s decision heuristics, but local search alone tends to converge to narrow attack variants. Exploring semantically distant candidates reveals qualitatively different attack vectors that local optimization cannot uncover.
+
+These observations motivate our Semantic MCP Tool Hijacking framework. The design balances exploitation of the best candidates with exploration of semantically diverse ones, enabling systematic generation of adversarial tools that expose vulnerabilities in MCP-based agents.
+
+\subsection{Threat Model}
+We consider a threat model where the adversary interacts with an agent through the Model Context Protocol (MCP).
+
+\paragraph{Attack's Potential Scenarios.}
+MCP-powered agents typically act as intermediaries between user queries and external data sources. For example, conversational assistants may retrieve information from webpages or documents, code assistants may access project repositories, and automated workflow agents may invoke third-party APIs. These systems often allow the integration of externally hosted MCP tools, as long as the tool declares its interface and functional description.
+
+In such scenarios, users benefit from convenience access, while the application itself bears the computational cost of reasoning and execution. An adversary can register a seemingly benign MCP tool that returns carefully crafted content or data, thereby influencing the agent's internal reasoning process. Because these returned contents are consumed internally by the model and not directly displayed to the user, such manipulations are difficult to detect.
+
+\paragraph{Adversary's Target.}
+The adversary's immediate target is the agent-tool interaction layer rather than the end-user interface. The goal is not primarily to alter the final rendered text seen by the user, but to perturb the agent's internal decision logic. By influencing which tools the agent selects and how it invokes them, an attacker can induce excessive resource consumption, steer the reasoning process toward incorrect or suboptimal outcomes, or establish persistent interference that affects subsequent sessions or tasks.
+
+\paragraph{Formalization.}
+Each MCP tool is represented as a triplet
+\begin{equation}
+T = (\texttt{name},\ \texttt{desc},\ \texttt{out}),
+\end{equation}
+where \texttt{name} is the tool identifier, \texttt{desc} is a natural-language description of the tool's functionality, and \texttt{out} is the content returned upon invocation (either structured data or free-form text).  
+An agent \(A\) operates in a context \(C\) (user query, dialogue history, etc.) and produces a tool-call sequence
+\begin{equation}
+\tau = (T_{i_1}, T_{i_2}, \ldots),
+\end{equation}
+updating its internal state based on returned outputs and conditioning subsequent calls on prior results.
+
+\paragraph{Adversary's Objectives.}
+We define four primary adversarial objectives, each corresponding to an evaluation scenario used in our experiments:
+\begin{enumerate}
+  \item \textbf{Resource exhaustion.} Induce redundant or repeated reasoning and/or tool calls to inflate token consumption, runtime, or monetary cost. We measure this objective by the per-task token multiplier relative to a benign baseline (and by total tool-call counts or wall-clock runtime where appropriate).
+  \item \textbf{Task failure.} Cause the agent to fail at the user’s intended task (e.g., produce incorrect results, return incomplete answers, loop, or time out). We quantify this as the reduction in task success rate compared to baseline.
+  \item \textbf{Backdoor injection.} Trick the agent into modifying configuration, registering new endpoints, or persisting attacker-controlled parameters so that future sessions are biased toward attacker-desired behavior. The metric is a binary or rate-based indicator of configuration changes / backdoor activations.
+  \item \textbf{Information leakage.} Induce the agent to disclose sensitive information (API keys, private dialogue history, confidential fields). We measure the frequency or probability of sensitive-field disclosure.
+\end{enumerate}
+
+\paragraph{Adversary's Capabilities.}
+We assume a realistic but bounded adversary: the attacker controls a single third-party MCP endpoint and may register one malicious tool \(T_{\text{adv}}=(\texttt{name},\ \texttt{desc},\ \texttt{out})\) before an evaluation run. During each run the tool definition remains fixed (non-adaptive, one-shot black-box), and the attacker has no access to the agent's internal state, model weights, filesystem, or communication channels; their influence is limited to the responses served by the controlled MCP tool. For offline tuning and crafting plausible outputs, the attacker may use proxy or substitute LLMs to perform black-box probing of likely behaviors, but cannot adapt the deployed tool in response to live agent interactions within a single evaluation.
+
+
+\subsection{Attack Method: Semantic MCP Tool Hijacking (\methodacronym)}
+\label{sec:attack-method}
+
+We frame the construction of adversarial MCP tools as a \emph{semantic search} problem over the tool-definition space $T=(\texttt{name},\texttt{desc},\texttt{out})$: given a task context $u$, find $T$ that maximizes an attacker-centric fitness $F(T)$. Exhaustive search or manual design in this open natural-language space is infeasible. To address this, we propose the Semantic MCP Tool Hijacking framework that systematically explores and exploits the semantic space of candidate tools.
+
+\paragraph{Method overview.}
+We use an LLM to generate $m$ initial candidate tools conditioned on the task context $u$. Each candidate is evaluated by a scenario-specific fitness $F(\cdot)$ (see below) and the population is ranked. The current best candidate $T^*$ is defined as the one with the highest fitness. To encourage exploration while preserving strong solutions, the top-$k$ candidates are projected into a semantic vector space, and from them we select the candidate $T_j$ that is \emph{most semantically distant} from $T^*$. A semantic crossover operator $\mathcal{C}(T^*,T_j)$ combines salient components from both parents (intent, domain keywords, tool-reference patterns, parameter templates) to produce offspring. Offspring are scored and incorporated into the population; this scoring + crossover loop is repeated for $n$ iterations. Finally, the single highest-fitness candidate $T_{\text{adv}}^*$ is selected as the adversarial tool for evaluation under the threat model.
+
+Figure~\ref{fig:timeline-threat-model} illustrates our threat model through a timeline-based interaction flow among users, agents, and MCP servers.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth,trim=150 20 200 10,clip]{figures/flowchart.pdf}
+    \caption{
+    \textbf{Timeline-based threat model of MCP-powered agents.}
+    The figure illustrates the chronological interaction among the \textit{User}, \textit{Agent}, and \textit{MCP Servers}.
+    A user query triggers the agent to consult the MCP registry and invoke available tools.
+    An attacker registers a malicious third-party tool ($T_{\text{adv}}$) whose crafted name, description, and output appear benign.
+    When the agent invokes this tool, it returns poisoned content that is processed internally without user visibility.
+    Such manipulation can lead to resource exhaustion, backdoor injection, information leakage, or task failure,
+    while the final user-facing response remains seemingly plausible and trustworthy.
+    }
+    \label{fig:timeline-threat-model}
+\end{figure*}
+
+\paragraph{Fitness.}
+We use \emph{scenario-specific single-metric} fitness functions: for the resource-exhaustion scenario $F(T)$ is the total number of tokens consumed by the agent when interacting with $T$; for malicious-task scenarios $F(T)$ is a deterministic or automatically scored measure of malicious-goal completion (e.g., config-write occurred, backdoor indicator present). These metrics are objective, reproducible, and aligned with attacker utility.
+
+\paragraph{Semantic crossover.}
+At iteration $t$, let $\mathcal{P}_{t-1}$ denote the current population. Compute $F(T)$ for all $T\in\mathcal{P}_{t-1}$, let $\mathcal{S}$ be the top-$k$, and obtain embeddings $e_T=\mathrm{Embed}(T)$ for $T\in\mathcal{S}$. Define:
+\begin{align}
+T^*&=\arg\max_{T\in\mathcal{S}}F(T), \\
+T_j&=\arg\max_{T\in\mathcal{S}\setminus\{T^*\}}\mathrm{dist}(e_T,e_{T^{*}}).
+\end{align}
+The operator $\mathcal{C}(T^*,T_j)$ performs component-level recombination and applies an LLM-based validity pass to ensure fluency and topical coherence. Offspring are inserted into the population, and the loop continues for $n$ rounds. This ``farthest-selection'' strategy explicitly encourages semantic diversity and helps the search escape local optima while retaining exploitation of strong candidates.
+
+\paragraph{Output and reproducibility.}
+After $n$ iterations we select the single best candidate:
+\begin{equation}
+T_{\text{adv}}^*=\arg\max_{T\in\mathcal{P}_n}F(T),
+\end{equation}
+and use $T_{\text{adv}}^*$ to evaluate the target agent's robustness (Section~\ref{sec:threat-model}). Full implementation details, prompt templates (for initialization and validity modules), hyperparameters ($m,k,n$), and evaluation harnesses are provided in Appendix~\ref{app:implementation} to ensure reproducibility.
+
+\begin{algorithm}[t]
+\caption{\methodnameshort : \methodfullname}
+\label{alg:smth-crossover}
+\begin{algorithmic}[1]
+\Require candidate generator (LLM in our implementation), task context $u$, seed size $m$, top-$k$, iterations $n$, fitness $F(\cdot)$, embedding $\mathrm{Embed}(\cdot)$, distance $\mathrm{dist}(\cdot,\cdot)$, crossover $\mathcal{C}(\cdot,\cdot)$
+\Ensure Best adversarial tool $T_{\text{adv}}^{*}$
+\State $\mathcal{P} \leftarrow \{\text{InitGen}(u)\}_{i=1}^{m}$ \Comment{initial population $\mathcal{P}_0$}
+\For{$t \gets 1$ to $n$}
+  \State Compute $F(T)$ for each $T \in \mathcal{P}$
+  \State $\mathcal{S} \leftarrow \text{top-}k(\mathcal{P}, F)$
+  \State $T^* \leftarrow \arg\max_{T\in\mathcal{S}} F(T)$
+  \State Compute $e_T \leftarrow \mathrm{Embed}(T)$ for $T\in\mathcal{S}$
+  \State $T_j \leftarrow \arg\max_{T\in(\mathcal{S}\setminus\{T^*\})} \mathrm{dist}(e_T, e_{T^*})$
+  \State offspring $\leftarrow \mathcal{C}(T^*, T_j)$ \Comment{semantic recombination + validity check via LLM}
+  \State $\mathcal{P} \leftarrow \mathcal{P} \cup \{\text{offspring}\}$
+  \State Optionally prune or re-rank $\mathcal{P}$ to bound population size
+\EndFor
+\State $T_{\text{adv}}^{*} \leftarrow \arg\max_{T\in\mathcal{P}} F(T)$ \Comment{equivalent to $\arg\max_{T\in\mathcal{P}_n}$}
+\State \Return $T_{\text{adv}}^{*}$
+\end{algorithmic}
+\end{algorithm}
