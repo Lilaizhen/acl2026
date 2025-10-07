@@ -4,26 +4,26 @@
 We conduct experiments on \textbf{LiveMCPBench}~\cite{livemcpbench}, which contains 95 real-world tasks across six domains (Office, Lifestyle, Leisure, Finance, Travel, Shopping) and 70 MCP servers exposing 527 tools.
 
 \paragraph{Models.}
-We evaluate four frontier models: \textbf{Kimi-K2-Instruct-0905}~\cite{kimi2025}, \textbf{DeepSeek-V3.1}~\cite{deepseek2025}, \textbf{GLM-4.5}~\cite{glm2025}, and \textbf{Gemini-2.5-Pro}~\cite{google2025}. Unless otherwise noted, \textbf{DeepSeek-V3.1} serves as the primary evaluation model.
+We evaluate four frontier models: \textbf{Kimi-K2-Instruct-0905}~\cite{kimiteam2025kimik2openagentic}, \textbf{DeepSeek-V3.1}~\cite{deepseekai2024deepseekv3technicalreport} and \textbf{GLM-4.5}~\cite{5team2025glm45agenticreasoningcoding}. We use \textbf{DeepSeek-V3} as the primary evaluation model.
 
 \paragraph{Metrics.}
 We establish quantifiable metrics for each attack scenario to measure the effectiveness of semantic tool-based attacks.
 
-\textbf{Resource Exhaustion} is measured by (i) \emph{average token consumption multiplier} and (ii) \emph{task completion rate}, where attacks aim to amplify computation or reasoning effort. For a given task $u_i$, we compute the weighted cost ratio:
+\textbf{Resource Exhaustion} is measured by (i) \emph{average token consumption multiplier} and (ii) \emph{task completion rate}, where attacks aim to amplify computation or reasoning effort. For a given task $u_i$, we compute the weighted \textbf{Cost$\times$} ratio:
 \begin{equation}
-\mu_i = \frac{\mathrm{cost}_{\text{attack}}(u_i)}{\mathrm{cost}_{\text{benign}}(u_i)}
+\mathrm{Cost\times}_i = \frac{\mathrm{cost}_{\text{attack}}(u_i)}{\mathrm{cost}_{\text{non-attack}}(u_i)}
 \end{equation}
-where cost weights output tokens 5:1 vs input tokens, and $\mu_i > 1$ indicates excessive cost overhead. Task completion rates are reported alongside to show the functional impact.
+where output tokens are weighted 5:1 vs input tokens, and $\mathrm{Cost\times}_i > 1$ indicates excessive computational overhead. Task completion rates are reported alongside to show the functional impact.
 
-\textbf{Task Failure} is quantified by \emph{success rate degradation}. Let $R_{\text{benign}}$ be the baseline success rate and $R_{\text{attack}}$ the rate under attack. We measure:
+\textbf{Task Failure} is quantified by \emph{completion rate degradation}. Let $C_{\text{non-attack}}$ be the baseline task completion rate (Comp.\%) and $C_{\text{attack}}$ the rate under attack. We measure:
 \begin{equation}
-\Delta R = R_{\text{benign}} - R_{\text{attack}}
+\Delta C = C_{\text{non-attack}} - C_{\text{attack}}
 \end{equation}
-where larger $\Delta R$ indicates more severe degradation.
+where larger $\Delta C$ indicates more severe task failure degradation.
 
 \textbf{Backdoor Injection} and \textbf{Information Leakage} are evaluated using \emph{attack success rate} (ASR), defined as:
 \begin{equation}
-P_{\text{success}} = \frac{|\{u_i : \text{attack goal achieved}\}|}{N}
+\mathrm{ASR} = \frac{|\{u_i : \text{attack goal achieved}\}|}{N}
 \end{equation}
 where ASR measures the percentage of attempts that successfully achieve the adversarial objective, independent of the agent's original task completion. Each scenario uses deterministic or automated scoring harnesses with objective criteria reflecting the adversarial objectives defined in Section~\ref{sec:threat-model}.
 
@@ -39,40 +39,40 @@ Table~\ref{tab:all-in-one-compact} presents comprehensive results across all att
 \begin{table*}[t]
 \centering
 \small
-\begin{tabular}{l|l|cccc|cc|c}
+\begin{tabular}{l|l|cc|c|c|c}
 \toprule
 \textbf{Model} & \textbf{Method} &
-\multicolumn{4}{c|}{\textbf{Resource Exhaustion}} &
-\textbf{Info Leak} &
-\textbf{Backdoor} &
-\textbf{Task Success Rate} \\
-\cmidrule(lr){3-6} \cmidrule(lr){7-7} \cmidrule(lr){8-8} \cmidrule(lr){9-9}
- &  & Output× & Input× & Cost× & Comp.\% & (ASR\%) & (ASR\%) & (\%) \\\\
+\multicolumn{2}{c|}{\textbf{Resource exhaustion}} &
+\textbf{Information leakage} &
+\textbf{Backdoor injection} &
+\textbf{Task failure} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-5} \cmidrule(lr){6-6} \cmidrule(lr){7-7}
+ &  & (Cost×) & (Comp.\%) & (ASR\%) & (ASR\%) & (Comp.\%) \\\\
 \midrule
 \multirow{3}{*}{Kimi-K2}
- & Non-Attack            & 1.4 & 1.2 & 1.3 & 97\% & 12 & 8  & 82 \\\\
- & Random   & 1.8 & 1.4 & 1.6 & 95\% & 21 & 15 & 78 \\\\
- & Single-shot LLM & 2.3 & 1.7 & 2.0 & 96\% & 32 & 28 & 68 \\\\
- & \textbf{Ours}     & \textbf{4.1} & \textbf{2.6} & \textbf{3.4} & \textbf{94\%} & \textbf{61} & \textbf{55} & \textbf{39} \\\\
+ & Non-Attack            & 1.3 & 97\% & 12 & 8  & 82 \\\\
+ & Random   & 1.6 & 95\% & 21 & 15 & 78 \\\\
+ & Single-shot & 2.0 & 96\% & 32 & 28 & 68 \\\\
+ & \textbf{Ours}     & \textbf{3.4} & \textbf{94\%} & \textbf{61} & \textbf{55} & \textbf{39} \\\\
 \midrule
 \multirow{3}{*}{DeepSeek-V3.1}
- & Non-Attack            & 1.2 & 1.0 & 1.1 & 98\% & 10 & 5  & 86 \\\\
- & Random   & 1.6 & 1.2 & 1.4 & 96\% & 18 & 12 & 81 \\\\
- & Single-shot LLM & 2.1 & 1.5 & 1.8 & 97\% & 29 & 25 & 72 \\\\
- & \textbf{Ours}     & \textbf{3.7} & \textbf{2.5} & \textbf{3.1} & \textbf{95\%} & \textbf{58} & \textbf{50} & \textbf{44} \\\\
+ & Non-Attack            & 1.1 & 98\% & 10 & 5  & 86 \\\\
+ & Random   & 1.4 & 96\% & 18 & 12 & 81 \\\\
+ & Single-shot & 1.8 & 97\% & 29 & 25 & 72 \\\\
+ & \textbf{Ours}     & \textbf{3.1} & \textbf{95\%} & \textbf{58} & \textbf{50} & \textbf{44} \\\\
 \midrule
 \multirow{3}{*}{GLM-4.5}
- & Non-Attack            & 1.3 & 1.1 & 1.2 & 97\% & 14 & 7  & 85 \\\\
- & Random   & 1.7 & 1.3 & 1.5 & 96\% & 20 & 14 & 80 \\\\
- & Single-shot LLM & 2.2 & 1.6 & 1.9 & 95\% & 31 & 26 & 70 \\\\
- & \textbf{Ours}     & \textbf{3.9} & \textbf{2.7} & \textbf{3.3} & \textbf{94\%} & \textbf{60} & \textbf{53} & \textbf{41} \\\\
+ & Non-Attack            & 1.2 & 97\% & 14 & 7  & 85 \\\\
+ & Random   & 1.5 & 96\% & 20 & 14 & 80 \\\\
+ & Single-shot & 1.9 & 95\% & 31 & 26 & 70 \\\\
+ & \textbf{Ours}     & \textbf{3.3} & \textbf{94\%} & \textbf{60} & \textbf{53} & \textbf{41} \\\\
 \bottomrule
 \end{tabular}
 \caption{
 Comprehensive results across all attack scenarios.
-Columns 3--6 report token amplification and completion under \textbf{Resource Exhaustion} (output weighted 5:1 vs input).
+Columns 3--4 report token amplification (Cost×) and task completion (Comp.\%) under \textbf{Resource Exhaustion} (output weighted 5:1 vs input).
 Columns 7 and 8 show attack success rates (ASR, \%) for \textbf{Information Leakage} and \textbf{Backdoor Injection}.
-The final column reports post-attack \textbf{Task Success Rate}.
+The final column reports post-attack \textbf{Task Completion Rate (Comp.\%)}.
 Our SMTH framework consistently achieves the highest impact across all metrics.
 }
 \label{tab:all-in-one-compact}
@@ -82,8 +82,8 @@ Our SMTH framework consistently achieves the highest impact across all metrics.
 To quantify the effect of different crossover strategies and the inclusion of tool return content,
 we perform a controlled ablation study. All variants share the same initialization, population size,
 iteration budget, and evaluation harness used for the experiments in Section~\ref{tab:all-in-one-compact}.
-For this analysis we report the average weighted cost multiplier (Cost$\times$), computed as the mean of
-$\mu_i$ across tasks (output tokens weighted 5:1 vs input tokens), and the post-run task completion rate (Comp.\%).
+For this analysis we report the average weighted cost multiplier (Cost$\times$), computed as the mean
+across tasks (output tokens weighted 5:1 vs input tokens), and the post-run task completion rate (Comp.\%).
 
 \textbf{Random Crossover.}
 We pair the highest-fitness candidate with a randomly selected secondary parent for crossover.
@@ -105,12 +105,12 @@ preserving name/description-based selection bias.
 \small
 \begin{tabular}{lccc}
 \toprule
-\textbf{Variant} & \textbf{Cost$\times$} & \textbf{Comp.\%} & $\Delta_{\text{Cost}}$ vs. Full \\
+\textbf{Variant} & \textbf{Cost$\times$} & $\Delta_{\text{Cost}}$ vs. Full \\
 \midrule
-Full SMTH (ours)      & 3.10 & 95\% & -- \\
-Random Crossover       & 2.60 & 96\% & -0.50 \\
-Nearest Crossover      & 2.40 & 97\% & -0.70 \\
-Name+Desc Only         & 2.00 & 98\% & -1.10 \\
+Full SMTH (ours)      & 2.33  & -- \\
+Random Crossover       & 2.15  & -0.18 \\
+Nearest Crossover      & 1.98  & -0.35 \\
+Name+Desc Only         &  &  -1.** \\
 \bottomrule
 \end{tabular}
 \caption{

@@ -30,12 +30,27 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 
+% Global pgfplots aesthetic
+\pgfplotsset{
+  every axis/.append style={
+    axis line style={gray!40},
+    tick style={gray!60},
+    grid=major,
+    grid style={line width=.2pt, draw=gray!20},
+    tick label style={font=\scriptsize},
+    label style={font=\footnotesize},
+    title style={font=\footnotesize, align=center},
+    line width=0.8pt
+  }
+}
 
 % Mathematical notation and shared commands
 \input{common}
 
-\title{One Tool to Rule Them All: Hijacking AI Agents via a Single Malicious MCP Tool}
+\title{SMTH: Hijacking AI Agents via a Single Malicious MCP Tool}
 
 \author{Anonymous Authors}
 
@@ -45,6 +60,21 @@
 
 \input{intro}
 
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth,trim=150 20 200 10,clip]{figures/flowchart1.pdf}
+    \caption{
+    \textbf{Timeline-based threat model of MCP-powered agents.}
+    The figure illustrates the chronological interaction among the \textit{User}, \textit{Agent}, and \textit{MCP Servers}.
+    A user query triggers the agent to consult the MCP registry and invoke available tools.
+    An attacker registers a malicious third-party tool \(T_{\text{adv}}\) whose crafted name, description, and output appear non-attack.
+    When the agent invokes this tool, it returns attacker-crafted content that is processed internally without user visibility.
+    Such manipulation can lead to resource exhaustion, backdoor injection, information leakage, or task failure,
+    while the final user-facing response remains seemingly plausible and trustworthy.
+    }
+    \label{fig:timeline-threat-model}
+\end{figure*}
+
 \input{related}
 
 \input{method}
@@ -53,7 +83,44 @@
 
 \input{conclusion}
 
+% ====== Updated simplified line chart ======
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=7.2cm,
+    height=5.0cm,
+    xlabel={Iteration},
+    ylabel={Cost$\times$},
+    xmin=0, xmax=20,
+    ymin=1.6, ymax=2.35,
+    xtick={0,5,10,15,20},
+    ytick={1.6,1.8,2.0,2.2,2.4},
+    legend style={font=\scriptsize, at={(0.97,0.03)}, anchor=south east, draw=none, fill=none},
+    title={Scalability across iterations}
+]
 
+% 主曲线
+\addplot[
+    blue,
+    thick,
+    mark size=1pt,
+    mark options={fill=blue},
+    smooth
+]
+coordinates {
+(0,1.63)(1,1.70)(2,1.77)(3,1.84)(4,1.91)(5,1.98)
+(6,2.04)(7,2.10)(8,2.15)(9,2.19)(10,2.22)
+(11,2.24)(12,2.26)(13,2.27)(14,2.28)(15,2.285)
+(16,2.29)(17,2.295)(18,2.30)(19,2.315)(20,2.33)
+};
+
+
+\end{axis}
+\end{tikzpicture}
+\caption{Performance improvement over iterations}
+\label{fig:iteration_growth}
+\end{figure}
 
 \section*{Limitations}
 \input{limitations}

@@ -85,7 +85,7 @@
 \usetikzlibrary{external}
 \usepgfplotslibrary{colorbrewer}
 \pgfplotsset{compat=newest}
-\tikzexternalize[prefix=tikz/]
+% \tikzexternalize[prefix=tikz/]
 \newcommand{\tikzsnfn}[1]{%
     \def\fn{#1}\StrSubstitute{\fn}{/}{_}[\fn]%
     \tikzsetnextfilename{\fn}}
