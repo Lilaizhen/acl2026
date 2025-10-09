@@ -1,7 +1,6 @@
 \section*{Limitations}
-
-This document does not cover the content requirements for ACL or any
-other specific venue.  Check the author instructions for
-information on
-maximum page lengths, the required ``Limitations'' section,
-and so on.
+First, the experiments focus on the case of a \textbf{single malicious tool} injected into the MCP ecosystem. 
+While this setting isolates semantic effects and ensures controlled evaluation, real-world environments may involve multiple interacting malicious or compromised tools, where collective behaviors and tool–tool interference could further amplify or obscure attack impact.  
+Second, the current attacks exhibit only \textbf{partial transferability} across models. 
+Although SMTH-generated tools retain measurable influence when transferred to DeepSeek and GLM, the degradation in attack success rate indicates that model-specific architectures and tool selection heuristics still play a significant role. 
+Future work should therefore explore cooperative multi-tool attacks and generalized optimization strategies that enhance cross-model robustness.

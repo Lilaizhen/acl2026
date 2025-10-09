@@ -43,7 +43,7 @@ We define four primary adversarial objectives, each corresponding to an evaluati
 \paragraph{Adversary's Capabilities.}
 We assume a realistic but bounded adversary: the attacker controls a single third-party MCP endpoint and may register one malicious tool \(T_{\text{adv}}=(\texttt{name},\ \texttt{desc},\ \texttt{out})\) before an evaluation run. During each run the tool definition remains fixed, non-adaptive and one-shot black-box, and the attacker has no access to the agent's internal state, model weights, filesystem, or communication channels. Their influence is limited to the responses served by the controlled MCP tool.
 
-\subsection{Attack Method: Semantic MCP Tool Hijacking (SMTH)}
+\subsection{Semantic MCP Tool Hijacking}
 \label{sec:attack-method}
 We frame the construction of adversarial MCP tools as a \emph{semantic search} problem over the tool-definition space \(T=(\texttt{name},\texttt{desc},\texttt{out})\): given a task context \(u\), find \(T\) that maximizes an attacker-centric fitness \(F(T)\). In light of the open and complex nature of the tool definition space, we adopt an automated evolutionary search strategy to generate adversarial tools.
 
