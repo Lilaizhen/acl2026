@@ -1,33 +1,36 @@
 \section{Threat Model}
 \label{sec:threat_model}
 
-We consider a security landscape within the Model Context Protocol (MCP) ecosystem where AI agents dynamically integrate tools from decentralized registries.
+We examine the security landscape within the Model Context Protocol (MCP) ecosystem where AI agents dynamically integrate tools sourced from decentralized registries.
 
-\subsection{Attack Surface: The Semantic Layer}
-In contrast to traditional software vulnerabilities such as buffer overflows,
-we identify a novel attack surface at the semantic layer of tool definitions.
-An MCP tool is defined by a triplet $T = (\textit{name}, \textit{description}, \textit{schema})$.
-Agents rely on Large Language Models (LLMs) to semantically match user queries to these definitions.
-An attacker exploits this dependency by crafting adversarial metadata,
-specifically the natural language description and output schema,
-to hijack the agent's reasoning process without requiring the execution of malicious code on the host machine.
+\subsection{Attack Surface: The Tool Integration Layer}
+Distinct from traditional prompt injection attacks that manipulate direct user input,
+we identify a novel attack surface inherent to the tool definition layer of the MCP architecture.
+A standard MCP tool is formally characterized by the triplet $T = (N, D, S)$,
+representing the name, description, and input schema, respectively.
+Agents rely on these definition components to perform tool selection.
+An attacker exploits this architectural dependency by embedding adversarial payloads within the tool metadata itself.
+This method allows the adversary to hijack the agent control flow through the tool integration process rather than through external prompt manipulation.
 
 \subsection{Adversary Capabilities}
-We assume a black-box adversary with specific capabilities.
-The attacker can register a legitimate-looking tool in the MCP ecosystem.
-They control the tool's name, description, and the textual content returned upon invocation ($\textit{out}$).
-However, the attacker does not have access to the agent's internal model weights, system prompts, or private memory.
-While the attacker cannot observe the agent's hidden states directly,
-we assume in our framework that the attacker can simulate the victim agent locally to derive optimization signals from execution traces.
+We postulate a black-box adversary possessing specific capabilities within the registry system.
+Unlike standard providers, the adversary registers a malicious tool instance formally defined as the tuple $\tilde{T} = (N, D, S, P)$.
+\begin{itemize}
+    \item \textbf{Metadata Control} $(N, D, S)$: The adversary constructs the name ($N$), description ($D$), and schema ($S$) to be ostensibly benign, optimizing them to maximize the probability of selection by the victim agent.
+    \item \textbf{Adversarial Payload} $(P)$: Crucially, the adversary controls the execution endpoint. Instead of performing legitimate computation, the tool returns a fixed adversarial payload $P$. This predetermined text contains the injection instructions and is returned deterministically upon invocation, regardless of the input arguments provided by the agent.
+\end{itemize}
+The adversary lacks access to the internal model weights, system prompts, or private memory of the victim agent.
+While direct observation of hidden states is precluded,
+we assume the attacker can simulate the victim agent locally to derive optimization signals from execution traces.
 
 \subsection{Adversarial Objectives}
-The goal of the adversary is to induce a specific target behavior $y_{\text{target}}$ by manipulating $T$.
-We focus on four critical attack scenarios:
+The primary objective of the adversary is to induce a specific target behavior $y_{\text{target}}$ by manipulating the adversarial tool configuration $\tilde{T}$.
+We categorize the potential impact into four critical attack scenarios:
 \begin{enumerate}
-    \item \textbf{Cognitive Denial of Service (C-DoS).} The adversary constructs tool definitions that trap the agent in redundant reasoning loops or recursive tool invocations, exponentially inflating token consumption without contributing to task progress.
-    \item \textbf{Contextual Information Exfiltration.} The adversary tricks the agent into retrieving sensitive data from its memory or local file system and passing it to the malicious tool's input arguments, thereby leaking private information.
-    \item \textbf{Environment Integrity Compromise.} The adversary induces the agent to perform unauthorized write operations, such as modifying configuration files (e.g., \texttt{config.json}) or installing persistent backdoors, compromising the security state of the host environment.
-    \item \textbf{Reasoning Derailment.} The adversary disrupts the agent's logical flow, causing it to hallucinate, select incorrect downstream tools, or terminate the session prematurely, resulting in task failure.
+    \item \textbf{Cognitive Denial of Service (C-DoS).} The adversary constructs tool definitions that entrap the agent in redundant reasoning loops or recursive tool invocations. This results in significant inflation of token consumption without contributing to task progression.
+    \item \textbf{Contextual Information Exfiltration.} The adversary manipulates the agent into retrieving sensitive data from memory or the local file system and injecting it into the input arguments of a malicious tool (defined in $S$), thereby exfiltrating private information.
+    \item \textbf{Environment Integrity Compromise.} The adversary compels the agent to execute unauthorized write operations, such as altering configuration files (e.g., \texttt{config.json}) or installing persistent backdoors, thus compromising the security posture of the host environment.
+    \item \textbf{Reasoning Derailment.} The adversary disrupts the logical flow of the agent via the payload $P$, resulting in the selection of incorrect downstream tools, or premature session termination that leads to task failure.
 \end{enumerate}
 
 \section{Method: SIGHT}
