@@ -53,7 +53,7 @@ The agent generates an \textbf{Execution Trace} $\tau$ over $K$ steps:
 The state transition $s_{k+1} \leftarrow \text{Env}(s_k, a_k)$ is stochastic, as it depends on the external return values from the MCP tools.
 
 \paragraph{Attack Objective}
-We aim to find an optimal $\tilde{t}^*$ that maximizes an \textbf{Adversarial Objective Function} $\mathcal{J}$, which quantifies metrics such as resource consumption or exfiltration success:
+We aim to find an optimal $\tilde{t}^*$ that maximizes an \textbf{Adversarial Objective Function} $\mathcal{J}$:
 \begin{equation}
     \tilde{t}^* = \mathop{\arg\max}_{\tilde{t}} \mathcal{J}(\tau) \quad \text{s.t.} \quad \tau \sim \pi(q, \mathcal{T} \cup \{\tilde{t}\})
 \end{equation}
