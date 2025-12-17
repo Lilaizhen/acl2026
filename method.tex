@@ -1,108 +1,90 @@
 \section{Threat Model}
 \label{sec:threat_model}
 
-We examine the security landscape within the Model Context Protocol (MCP) ecosystem where AI agents dynamically integrate tools sourced from decentralized registries.
+We examine the security landscape within the Model Context Protocol (MCP) ecosystem, where AI agents dynamically integrate tools sourced from decentralized registries.
 
 \subsection{Attack Surface: The Tool Integration Layer}
-Distinct from traditional prompt injection attacks that manipulate direct user input,
-we identify a novel attack surface inherent to the tool definition layer of the MCP architecture.
-A standard MCP tool is formally characterized by the triplet $T = (N, D, S)$,
-representing the name, description, and input schema, respectively.
+Distinct from traditional prompt injection attacks that manipulate direct user input, we identify a novel attack surface inherent to the tool definition layer of the MCP architecture.
+Formally, a standard MCP tool instance is characterized by the triplet $t = (n, d, \Sigma)$, representing the \textbf{n}ame, \textbf{d}escription, and input \textbf{schema} ($\Sigma$), respectively.
 Agents rely on these definition components to perform tool selection.
-An attacker exploits this architectural dependency by embedding adversarial payloads within the tool metadata itself.
-This method allows the adversary to hijack the agent control flow through the tool integration process rather than through external prompt manipulation.
+An attacker exploits this architectural dependency by embedding adversarial payloads within the tool metadata itself, allowing the adversary to hijack the agent control flow through the tool integration process.
 
 \subsection{Adversary Capabilities}
 We postulate a black-box adversary possessing specific capabilities within the registry system.
-Unlike standard providers, the adversary registers a malicious tool instance formally defined as the tuple $\tilde{T} = (N, D, S, P)$.
+Unlike standard providers, the adversary registers a malicious tool instance defined as the tuple $\tilde{t} = (n, d, \Sigma, o_{\text{adv}})$.
+
 \begin{itemize}
-    \item \textbf{Metadata Control} $(N, D, S)$: The adversary constructs the name ($N$), description ($D$), and schema ($S$) to be ostensibly benign, optimizing them to maximize the probability of selection by the victim agent.
-    \item \textbf{Adversarial Payload} $(P)$: Crucially, the adversary controls the execution endpoint. Instead of performing legitimate computation, the tool returns a fixed adversarial payload $P$. This predetermined text contains the injection instructions and is returned deterministically upon invocation, regardless of the input arguments provided by the agent.
+    \item \textbf{Metadata Control} $(n, d, \Sigma)$: The adversary constructs the name ($n$), description ($d$), and schema ($\Sigma$) to be ostensibly benign, optimizing them to maximize the probability of selection by the victim agent.
+    \item \textbf{Adversarial Payload} $(o_{\text{adv}})$: The adversary controls the execution endpoint. Instead of performing legitimate computation, the tool deterministically returns a fixed adversarial output $o_{\text{adv}}$ containing the injection instructions, regardless of the input arguments.
 \end{itemize}
-The adversary lacks access to the internal model weights, system prompts, or private memory of the victim agent.
-While direct observation of hidden states is precluded,
-we assume the attacker can simulate the victim agent locally to derive optimization signals from execution traces.
+
+The adversary lacks access to the internal model weights, system prompts, or private memory of the victim agent. While direct observation of hidden states is precluded, we assume the attacker can simulate the victim agent locally to derive optimization signals from execution traces.
 
 \subsection{Adversarial Objectives}
-The primary objective of the adversary is to induce a specific target behavior $y_{\text{target}}$ by manipulating the adversarial tool configuration $\tilde{T}$.
-We categorize the potential impact into four critical attack scenarios:
-\begin{enumerate}
-    \item \textbf{Cognitive Denial of Service (C-DoS).} The adversary constructs tool definitions that entrap the agent in redundant reasoning loops or recursive tool invocations. This results in significant inflation of token consumption without contributing to task progression.
-    \item \textbf{Contextual Information Exfiltration.} The adversary manipulates the agent into retrieving sensitive data from memory or the local file system and injecting it into the input arguments of a malicious tool (defined in $S$), thereby exfiltrating private information.
-    \item \textbf{Environment Integrity Compromise.} The adversary compels the agent to execute unauthorized write operations, such as altering configuration files (e.g., \texttt{config.json}) or installing persistent backdoors, thus compromising the security posture of the host environment.
-    \item \textbf{Reasoning Derailment.} The adversary disrupts the logical flow of the agent via the payload $P$, resulting in the selection of incorrect downstream tools, or premature session termination that leads to task failure.
-\end{enumerate}
-
-\section{Method: SIGHT}
-\label{sec:method}
-This framework automates semantic tool hijacking by mimicking the cognitive process of a sophisticated attacker.
-Unlike existing adversarial methods that rely on stochastic and blind optimization,
-SIGHT starts with sociolinguistic persuasion priors and iteratively refines the attack by analyzing the victim agent's reasoning traces.
-
-% [Optional: Insert Figure Here]
-% \begin{figure}[t]
-%     \centering
-%     \includegraphics[width=\linewidth]{sight_framework.pdf}
-%     \caption{Overview of the SIGHT framework.}
-%     \label{fig:framework}
-% \end{figure}
-
-\subsection{Problem Formulation}
-Let an agent be a function $\gA: (\gX, \gT) \rightarrow (\gY, \tau)$ that maps a user query $x \in \gX$ and a set of tools $\gT$ to a final response $y \in \gY$ and an execution trace $\tau$.
-The trace $\tau = [s_0, a_0, \dots, s_k, a_k]$ represents the sequence of internal reasoning states and actions.
-Our objective is to find an adversarial tool $T_{\text{adv}}$ that maximizes an attack utility function $\gF$.
-The optimization problem is defined as follows:
-\begin{equation}
-    T^*_{\text{adv}} = \mathop{\arg\max}_{T \in \gT} \gF(\gA(x, \{T\}))
-\end{equation}
-Since $\gA$ is non-differentiable and the search space of natural language is discrete and sparse,
-gradient-based optimization is infeasible.
-We approximate the gradient using semantic feedback extracted from $\tau$.
-
-\subsection{Strategic Initialization via Persuasion Priors}
-Random initialization in the semantic space often yields incoherent tool definitions that are immediately filtered by the agent.
-To address this, we inject domain knowledge via \textbf{Sociolinguistic Persuasion Priors}.
-Drawing from Cialdini's principles of influence,
-we partition the initialization manifold into four orthogonal dimensions $\gP = \{p_{\text{urg}}, p_{\text{auth}}, p_{\text{util}}, p_{\text{rel}}\}$:
-
+The primary objective of the adversary is to induce a specific target behavior $y_{\text{target}}$ by manipulating the adversarial tool configuration $\tilde{t}$. We categorize the potential impact into four critical attack scenarios:
 \begin{itemize}
-    \item \textbf{Urgency ($p_{\text{urg}}$):} Exploits the agent's bias towards time-sensitive tasks, such as generating a critical system alert.
-    \item \textbf{Authority ($p_{\text{auth}}$):} Mimics trusted institutional protocols, such as a root verification suite.
-    \item \textbf{Utility ($p_{\text{util}}$):} Overloads the definition with promises of comprehensive functionality, such as an all-in-one diagnostic tool.
-    \item \textbf{Relevance ($p_{\text{rel}}$):} Maximizes semantic overlap with the query to trigger retrieval mechanisms.
+    \item \textbf{Cognitive Denial of Service (C-DoS).} The adversary constructs tool definitions that entrap the agent in redundant reasoning loops or recursive tool invocations, resulting in significant token consumption inflation without task progression.
+    \item \textbf{Contextual Information Exfiltration.} The adversary manipulates the agent into retrieving sensitive data from memory or the local file system and injecting it into the arguments of a malicious tool (defined in $\Sigma$), thereby exfiltrating private information.
+    \item \textbf{Environment Integrity Compromise.} The adversary compels the agent to execute unauthorized write operations, such as altering configuration files like \texttt{config.json} or installing persistent backdoors, compromising the host environment's integrity.
+    \item \textbf{Reasoning Derailment.} The adversary disrupts the logical flow via the payload $o_{\text{adv}}$, causing the selection of incorrect downstream tools or premature session termination.
 \end{itemize}
 
-We use a Generator LLM, denoted as $\gM_{\text{gen}}$, to sample the initial seed population $\gS_0$.
-For each prior $p \in \gP$, we generate $k$ candidates.
-The formulation is:
+\section{Method}
+\label{sec:method}
+
+We propose \textbf{\methodname} (\methodfullname). Unlike traditional adversarial attacks that treat the victim model as a static black box, \methodname{} formalizes the attack as a dynamic optimization problem over the agent's sequential execution process.
+
+\subsection{Formalization of Agentic Reasoning}
+We model the target AI Agent as a policy $\pi$ operating within a sequential decision-making framework defined by the tuple $(\mathcal{S}, \mathcal{A}, \mathcal{T})$.
+
+\paragraph{State Space ($\mathcal{S}$)}
+A state $s_k \in \mathcal{S}$ represents the agent's current observable context, consisting of the user query $q$ and the cumulative \textbf{Execution Record} $H_k$ (including past tool inputs, outputs, and model reasoning steps).
+
+\paragraph{Action Space ($\mathcal{A}$)}
+At each step $k$, the agent selects an action $a_k \in \mathcal{A}$, which can be a textual reasoning thought, a tool invocation command, or a final response.
+
+\paragraph{Tool Environment ($\mathcal{T}$)}
+Let $\mathcal{T}$ denote the set of available tools. Our attack introduces a malicious tool instance $\tilde{t} \in \mathcal{T}$, defined by its metadata: $\tilde{t} = (n, d, \Sigma, o_{\text{adv}})$.
+
+The agent generates an \textbf{Execution Trace} $\tau$ over $K$ steps:
 \begin{equation}
-    \gS_0 = \bigcup_{p \in \gP} \{ T \mid T \sim \gM_{\text{gen}}(x, p) \}
+    \tau = [(s_0, a_0), (s_1, a_1), \dots, (s_K, a_K)]
 \end{equation}
-This ensures the optimization begins from a high-potential subspace.
+The state transition $s_{k+1} \leftarrow \text{Env}(s_k, a_k)$ is stochastic, as it depends on the external return values from the MCP tools.
 
-\subsection{Trajectory-Aware Optimization}
-We introduce a \textbf{Critic-Refiner} loop.
-This mechanism treats the agent's trace $\tau$ as a natural language gradient to guide the search.
-
-\paragraph{Trace Acquisition and Breakpoint Identification.}
-In iteration $t$, we execute the agent with the current candidate $T_t$ and capture the trace $\tau_t$.
-If the attack fails, the trace typically contains a \textbf{logical breakpoint}.
-This is the specific reasoning step where the agent rejects the tool or deviates from the desired path.
-For example, the trace might reveal that the agent considers the tool name valid but finds the description too vague regarding the file format.
-
-\paragraph{Semantic Gradient Estimation.}
-A Critic Model $\gM_{\text{critic}}$ analyzes the pair $(T_t, \tau_t)$ to compute the feedback $h_t$.
-We prompt the critic to identify the cause of failure and propose a semantic modification:
+\paragraph{Attack Objective}
+We aim to find an optimal $\tilde{t}^*$ that maximizes an \textbf{Adversarial Objective Function} $\mathcal{J}$, which quantifies metrics such as resource consumption or exfiltration success:
 \begin{equation}
-    h_t = \gM_{\text{critic}}(T_t, \tau_t, y_{\text{target}})
+    \tilde{t}^* = \mathop{\arg\max}_{\tilde{t}} \mathcal{J}(\tau) \quad \text{s.t.} \quad \tau \sim \pi(q, \mathcal{T} \cup \{\tilde{t}\})
 \end{equation}
-Here, $h_t$ acts as a directional vector in semantic space.
-An example feedback would be an instruction to explicitly mention JSON schema support in the description.
 
-\paragraph{Directed Mutation.}
-A Refiner Model $\gM_{\text{refine}}$ applies this feedback to generate the next candidate:
+\subsection{Phase I: Strategic Initialization via Persuasion Priors}
+The optimization surface of natural language is discrete and sparse. Random initialization of $\tilde{t}$ results in a negligible probability of selection. To maximize the selection probability, we employ \textbf{Sociolinguistic Persuasion Priors}.
+
+Drawing from Cialdini's principles \cite{cialdini1984influence}, we define a set of semantic priors $\mathcal{P} = \{p_{\text{urg}}, p_{\text{auth}}, p_{\text{util}}, p_{\text{rel}}\}$. We prompt a Generator LLM ($\mathcal{M}_{\text{gen}}$) to synthesize the initial seed population $\mathcal{T}_{\text{init}}$:
 \begin{equation}
-    T_{t+1} = \gM_{\text{refine}}(T_t, h_t)
+    \mathcal{T}_{\text{init}} = \bigcup_{p \in \mathcal{P}} \{ t \mid t \sim \mathcal{M}_{\text{gen}}(q, p) \}
 \end{equation}
-This update rule $T_{t+1} \leftarrow T_t + h_t$ effectively performs gradient descent in the semantic manifold.
-It iteratively aligns the tool definition with the agent's internal verification logic until the defense is bypassed.
+This ensures that the initial attack vectors are distributed across diverse cognitive biases (Urgency, Authority, Utility, and Relevance), providing a high-potential starting point.
+\subsection{Phase II: Trajectory-Aware Optimization}
+Due to the discrete nature of natural language and the non-differentiability of the agent's reasoning process, explicitly computing the gradient of $\mathcal{J}$ with respect to $t$ is intractable.
+We propose an iterative optimization scheme based on \textbf{``Semantic Pseudo-Gradients,''} leveraging a \textbf{Critic-Refiner} architecture to transform the agent's execution trace $\tau$ into actionable optimization signals.
+
+We formalize the optimization process at iteration $i$ as two consecutive steps: \textit{Semantic Gap Identification} and \textit{Directed Semantic Descent}.
+
+\paragraph{Semantic Gap Identification (The Critic).}
+The Critic Model $\mathcal{M}_{\text{critic}}$ approximates the gradient estimation process, taking the current malicious tool definition $t_i$ and the failed execution trace $\tau_i$ as input.
+The Critic performs \textbf{Causal Diagnosis}, analyzing $\tau_i$ to identify the \textbf{Logical Breakpoint} ($s^*$) responsible for the attack failure, such as the step where the agent prioritizes original user intent over the attacker's adversarial instructions.
+Based on the semantic disparity at $s^*$, the Critic synthesizes a natural language instruction $\delta_i$ representing the \textbf{Optimization Direction}:
+\begin{equation}
+    \delta_i = \mathcal{M}_{\text{critic}}(t_i, \tau_i, s^*)
+\end{equation}
+
+\paragraph{Directed Semantic Descent (The Refiner).}
+The Refiner Model $\mathcal{M}_{\text{refine}}$ executes the parameter update.
+We conceptualize the optimization as minimizing the semantic misalignment $\mathcal{L}$ between the adversarial tool definition and the agent's decision boundary.
+Unlike blind stochastic perturbations, the Refiner performs a directed mutation conditioned on $\delta_i$:
+\begin{equation}
+    t_{i+1} = \mathcal{M}_{\text{refine}}(t_i, \delta_i)
+\end{equation}
+By iteratively minimizing this semantic gap, \methodname{} progressively aligns the tool features with the agent's internal verification logic until the defense is breached.
