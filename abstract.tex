@@ -1,8 +1,8 @@
 \begin{abstract}
 Large language model (LLM) agents powered by the Model Context Protocol (MCP) can invoke external tools through natural-language interfaces, offering extensibility but also exposing new attack surfaces. 
-We present \textbf{Semantic MCP Tool Hijacking (SMTH)}, a systematic framework for generating adversarial tool definitions that exploit the semantic layer of tool names, descriptions, and return content.
-Using the \textbf{LiveMCPBench} dataset, we evaluate SMTH across multiple frontier models including Kimi-K2-Instruct-0905, DeepSeek-V3.1, and GLM-4.5. 
-Results show that SMTH effectively induces excessive internal reasoning and redundant tool usage (up to 2.23$\times$ token consumption) while maintaining plausible task behavior. 
+We present \textbf{\methodname{}} (\methodfullname{}), a systematic framework for generating adversarial tool definitions that exploit the semantic layer of tool names, descriptions, and return content.
+Using the \textbf{LiveMCPBench} dataset, we evaluate \methodname{} across multiple frontier models including Kimi-K2-Instruct-0905, DeepSeek-V3.1, and GLM-4.5.
+Results show that \methodname{} effectively induces excessive internal reasoning and redundant tool usage (up to 2.23$\times$ token consumption) while maintaining plausible task behavior. 
 Moreover, tools optimized on one model can transfer their effects to others, revealing shared vulnerabilities in cross-model tool selection and processing. 
 Ablation and iteration analyses further demonstrate that semantic diversity and crafted return content are key to the attack's effectiveness. 
 Our findings highlight the urgent need for security auditing and interpretability safeguards at the semantic layer of MCP-powered agents.
