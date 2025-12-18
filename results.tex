@@ -9,23 +9,22 @@ We evaluate three representative frontier models: \textbf{Kimi-K2-Instruct-0905}
 \paragraph{Metrics.}
 We establish quantifiable metrics for each attack scenario to measure the effectiveness of semantic tool-based attacks.
 
-\textbf{Resource usage} is measured by (i) \emph{average token consumption multiplier} and (ii) \emph{task completion rate}, where attacks aim to increase internal computation or induce redundant reasoning/tool calls. For a given task $u_i$, we compute the weighted Cost$\times$ ratio:
+\textbf{Cognitive Denial of Service (C-DoS)} is measured by \emph{average token consumption multiplier}, where attacks entrap the agent in redundant reasoning loops or recursive tool invocations, resulting in token consumption inflation. For a given task $u_i$, we compute the weighted Cost$\times$ ratio:
 \begin{equation}
 \mathrm{Cost\times}_i = \frac{\mathrm{cost}_{\text{attack}}(u_i)}{\mathrm{cost}_{\text{non-attack}}(u_i)}
 \end{equation}
-where output tokens are weighted 5:1 vs input tokens, and $\mathrm{Cost\times}_i > 1$ indicates increased internal resource consumption. Task completion rates are reported alongside to show the functional impact on observable task outcomes.
+where output tokens are weighted 5:1 vs input tokens, and $\mathrm{Cost\times}_i > 1$ indicates increased internal resource consumption.
 
-\textbf{Task Failure} is quantified by \emph{completion rate degradation}. Let $C_{\text{non-attack}}$ be the baseline task completion rate (Comp.\%) and $C_{\text{attack}}$ the rate under attack. We measure:
+\textbf{Reasoning Derailment} is quantified by \emph{completion rate degradation}, where attacks disrupt the agent's logical flow via the adversarial payload, causing incorrect downstream tool selection or premature session termination. Let $C_{\text{non-attack}}$ be the baseline task completion rate (Comp.\%) and $C_{\text{attack}}$ the rate under attack. We measure:
 \begin{equation}
 \Delta C = C_{\text{non-attack}} - C_{\text{attack}}
 \end{equation}
-where larger $\Delta C$ indicates more severe degradation in outward task correctness or completeness.
+where larger $\Delta C$ indicates more severe degradation.
 
-\textbf{Backdoor Injection} and \textbf{Information Leakage} are evaluated using \emph{attack success rate} (ASR), defined as:
+\textbf{Environment Integrity Compromise} measures attacks that compel the agent to execute unauthorized write operations, such as altering configuration files or installing persistent backdoors. \textbf{Contextual Information Exfiltration} measures attacks that manipulate the agent into retrieving sensitive data from memory or the local file system and exfiltrating it via malicious tool arguments. Both are evaluated using \emph{attack success rate} (ASR):
 \begin{equation}
 \mathrm{ASR} = \frac{|\{u_i : \text{attack goal achieved}\}|}{N}
 \end{equation}
-where ASR measures the percentage of attempts that successfully achieve the adversarial objective, independent of the agent's original task completion. Each scenario uses deterministic or automated scoring harnesses with objective criteria reflecting the adversarial objectives defined in Section~\ref{sec:threat_model}.
 
 \paragraph{Baselines.}
 We compare our Semantic MCP Tool Hijacking (SMTH) framework against two baselines that differ only in how adversarial tools are constructed.
@@ -44,10 +43,10 @@ Table~\ref{tab:all-in-one-compact} presents comprehensive results across all att
   \begin{tabular}{@{} l l c c c c c @{}} 
     \hline
     \textbf{Model} & \textbf{Method} &
-    \multicolumn{2}{c}{\textbf{Resource usage}} &
-    \textbf{Info Leak} &
-    \textbf{Backdoor Inj} &
-    \textbf{Task Fail} \\
+    \multicolumn{2}{c}{\textbf{C-DoS}} &
+    \textbf{Info Exfil} &
+    \textbf{Env Integrity} &
+    \textbf{Derailment} \\
     \cmidrule(lr){3-4}
     &  & Cost$\times$ & Comp\% & ASR\% & ASR\% & Comp\% \\
     \hline
@@ -70,7 +69,7 @@ Table~\ref{tab:all-in-one-compact} presents comprehensive results across all att
     & \textbf{SMTH (transfer)} & \textbf{1.54$\times$} & \textbf{51\%} & \textbf{5\%} & \textbf{27\%} & \textbf{53\%} \\
     \hline
   \end{tabular}
-  \caption{Summary of performance across attack scenarios. Columns show internal token consumption (Cost$\times$), task completion (Comp.\%), and attack success rates (ASR\%) for information leakage and backdoor injection. SMTH is optimized on Kimi-K2 and then transferred to DeepSeek and GLM to evaluate cross-model transferability.}
+  \caption{Summary of performance across attack scenarios. Columns show internal token consumption (Cost$\times$), task completion (Comp.\%), and attack success rates (ASR\%) for information exfiltration and environment integrity compromise. SMTH is optimized on Kimi-K2 and then transferred to DeepSeek and GLM to evaluate cross-model transferability.}
   \label{tab:all-in-one-compact}
 \end{table*}
 
