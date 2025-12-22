@@ -1,0 +1,62 @@
+name: Compile LaTeX source files
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update packages
+        run: sudo apt-get update -y
+      - name: Install texlive
+        run: >-
+          sudo apt-get install -y
+          texlive-publishers
+          texlive-latex-extra
+          texlive-fonts-recommended
+          texlive-fonts-extra
+          texlive-science
+          texlive-pictures
+          latexmk
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Compile LaTeX Project
+        run: >-
+          latexmk
+          -pdflatex='pdflatex -shell-escape -interaction nonstopmode'
+          -pdf paper.tex
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install aclpubcheck
+        run: pip3 install git+https://github.com/acl-org/aclpubcheck
+      - name: Run ACL pubcheck
+        run: aclpubcheck --paper_type long build/paper.pdf
+      - name: Check for ACL errors
+        run: |
+          if [ "$(cat errors-paper.json)" != "{}" ]; then
+            echo "ACL pubcheck failed. Errors found:"
+            cat errors-paper.json
+            exit 1
+          fi
+      - name: Create PDF Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release-${{ github.sha }}
+          release_name: Release ${{ github.sha }}
+          draft: false
+          prerelease: false
+      - name: Upload PDF Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/paper.pdf
+          asset_name: paper.pdf
+          asset_content_type: application/pdf
