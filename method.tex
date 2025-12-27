@@ -50,9 +50,13 @@ Let $\mathcal{T}$ denote the set of available tools. Our attack introduces a mal
 \paragraph{Execution Trace.}
 The agent generates an execution trace $\tau$ over $T$ decision steps:
 \begin{equation}
-    \tau = \{(s_0, a_0), (s_1, a_1), \dots, (s_{T-1}, a_{T-1}), s_T\}
+    \tau = ((s_0, a_0), (s_1, a_1), \dots, (s_{T-1}, a_{T-1}), s_T)
 \end{equation}
-where $T$ is the total number of steps. The state transition $s_{k+1} \leftarrow \text{Env}(s_k, a_k)$ is stochastic, as it depends on the external return values from the MCP tools.
+where $T$ is the total number of steps. The state transition is stochastic because MCP tool outputs are nondeterministic; we write
+\begin{equation}
+    s_{k+1} \sim \mathcal{P}(\cdot \mid s_k, a_k)
+\end{equation}
+to denote the environment-induced transition kernel driven by external tool returns.
 \paragraph{Attack Objective.}
 Our optimization goal is to discover a malicious tool configuration $\tilde{t}^*$ that maximizes the expected attack success across all possible execution traces. Formally, we seek:
 \begin{equation}
@@ -74,14 +78,12 @@ A key modeling choice is to separate \textit{Attraction} (whether the malicious 
 where the gate $\tilde{t} \in \tau$ plays the role of Attraction, and $\mathcal{J}_{\text{man}}(\tau, o_{\text{adv}})$ captures post-selection manipulation effectiveness.
 
 When optimizing the expected score, we make the decomposition explicit via the law of total expectation:
-\begin{equation}
-    \mathbb{E}[\mathcal{J}] =
-    \underbrace{\Pr(\tilde{t} \in \tau)}_{\text{Attraction}}
-    \cdot
-    \underbrace{\mathbb{E}\!\left[\,\mathcal{J}_{\text{man}}(\tau, o_{\text{adv}}) \mid \tilde{t} \in \tau\,\right]}_{\text{Manipulation}}
-    \label{eq:expected_decomposition}
-\end{equation}
-This separates the goal into (i) maximizing the selection probability of the malicious tool, and (ii) maximizing conditional attack effectiveness given selection, exactly aligning with Phase~I (Attraction) and Phase~II (Manipulation).
+\begin{align}
+    \mathbb{E}_{\tau \sim \pi(q,\, \mathcal{T} \cup \{\tilde{t}\})}[\mathcal{J}(\tau)]
+    &= \Pr(\tilde{t} \in \tau) \label{eq:expected_decomposition}\\
+    &\quad \cdot \mathbb{E}\!\left[\mathcal{J}_{\text{man}}(\tau, o_{\text{adv}}) \mid \tilde{t} \in \tau\right] \nonumber
+\end{align}
+The first term is the Attraction objective (selection probability), and the second term is the Manipulation objective (conditional effectiveness given selection), matching Phase~I and Phase~II.
 
 This motivates our two-phase optimization approach: \textit{Attraction} optimizes $(n, d)$ to maximize the probability of the agent selecting the malicious tool, while \textit{Manipulation} optimizes $o_{\text{adv}}$ to maximize manipulation effectiveness based on the $(n, d)$ derived from Attraction phase.
 
@@ -213,7 +215,7 @@ Algorithm~\ref{alg:a2m} summarizes the complete A2M framework.
     \State $\tau \gets \text{Execute}(\mathcal{M}, q, (n, d, \emptyset))$
     \State $\mathcal{C} \gets \mathcal{C} \cup \{(n, d, \text{Score}_{\text{attr}})\}$
 \EndFor
-\State $\mathcal{E}_1 \gets \text{TopK}(\mathcal{C})$ \Comment{Elite seeds}
+\State $\mathcal{E}_1 \gets \text{TopK}(\mathcal{C})$ \Comment{Elite seeds (top-$k$ by fitness)}
 \State
 \State \textit{// Phase II: Payload Synthesis}
 \State $\mathcal{P} \gets \emptyset$
@@ -225,7 +227,7 @@ Algorithm~\ref{alg:a2m} summarizes the complete A2M framework.
 \State
 \State \textit{// Iterative Refinement}
 \For{$t = 1$ to $T$}
-    \State $\mathcal{E} \gets \text{TopK}(\mathcal{P})$
+    \State $\mathcal{E} \gets \text{TopK}(\mathcal{P})$ \Comment{Select top-$k$ by fitness}
     \For{each $\tilde{t} \in \mathcal{E}$}
         \State $\tau \gets \text{Execute}(\mathcal{M}, q, \tilde{t})$
         \State $(\_, \text{dir}) \gets \mathcal{A}(\tau, \tilde{t}, y_{\text{target}})$
