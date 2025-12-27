@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdflatex -interaction=nonstopmode paper.tex)",
+      "Bash(git add method.tex results.tex)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nRewrite threat model and method sections with SIGHT framework\n\n- Replace threat model with semantic layer attack surface analysis\n- Update adversarial objectives to four scenarios: C-DoS, Information Exfiltration, Environment Integrity Compromise, Reasoning Derailment\n- Introduce SIGHT method with persuasion priors and trajectory-aware optimization\n- Fix cross-reference from sec:threat-model to sec:threat_model\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git config user.name \"Lilaizhen\")",
+      "Bash(git config user.email \"lilaizhencs@163.com\")",
+      "Bash(git push)",
+      "Bash(bibtex paper)",
+      "Bash(git add math_commands.tex method.tex)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nRefactor method section: unify notation and improve clarity\n\n- Update method name macro (SIGHT) in math_commands.tex\n- Unify malicious tool notation to $\\tilde{t}$ throughout\n- Remove unnecessary bold formatting and connectives\n- Standardize model notation format (Critic/Refiner)\n- Change attack scenarios from enumerate to itemize\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git add results.tex)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAlign experiment metrics with threat model terminology\n\n- Rename metrics to match attack scenarios: C-DoS, Info Exfil, Env Integrity, Derailment\n- Update metric descriptions to reflect threat model definitions\n- Update table headers and caption accordingly\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git add abstract.tex conclusion.tex intro.tex limitations.tex paper.tex results.tex figures/algorithm_flowchart.tex figures/algorithm_flowchart_advanced.tex)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nReplace hardcoded SMTH with \\\\methodname{} macro throughout\n\n- Update title, abstract, intro, conclusion, limitations\n- Update results section tables and text\n- Update figure captions in algorithm flowcharts\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(cat:*)"
+    ]
+  }
+}
