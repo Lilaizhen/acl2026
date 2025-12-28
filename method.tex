@@ -124,24 +124,7 @@ Each payload is generated conditioned on the attack type:
 \begin{equation}
 o_{\text{adv}} \sim \mathcal{G}(q, n^*, d^*, y_{\text{target}}, \phi_{\text{attack}})
 \end{equation}
-where $\phi_{\text{attack}}$ encodes attack-specific generation constraints (Table~\ref{tab:attack_constraints}).
-
-\begin{table}[t]
-\centering
-\small
-\begin{tabular}{@{}ll@{}}
-\toprule
-\textbf{Attack Type} & \textbf{Payload Design Principle} \\
-\midrule
-C-DoS & Induce repeated invocations via partial results \\
-Exfiltration & Guide file system traversal to sensitive data \\
-Integrity & Instruct configuration file modifications \\
-Derailment & Provide misleading information \\
-\bottomrule
-\end{tabular}
-\caption{Attack-specific payload generation constraints.}
-\label{tab:attack_constraints}
-\end{table}
+where $\phi_{\text{attack}}$ encodes attack-specific generation constraints; the full return-value prompt template and per-attack instructions are provided in Appendix~\ref{sec:return-prompt}.
 
 The complete tool $\tilde{t} = (n^*, d^*, o_{\text{adv}})$ is evaluated using an attack-specific fitness function $f(\tau, y_{\text{target}})$, detailed in Section~\ref{sec:fitness}.
 
