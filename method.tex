@@ -32,7 +32,7 @@ The primary objective of the attacker is to induce a specific target behavior $y
 \section{Method}
 \label{sec:method}
 
-We introduce \textbf{A2M} (\textbf{A}ttraction-\textbf{to}-\textbf{M}anipulation), a black-box optimization framework for generating malicious MCP tools. Our key insight is that tool-based attacks require optimizing two distinct objectives: (1) \textit{attraction}, maximizing the probability that an agent selects the malicious tool, and (2) \textit{manipulation}, maximizing the probability of manipulating agent behavior to achieve the attack goal once selected. We decouple these objectives into a two-phase optimization process, guided by execution trace analysis.
+We introduce \methodname{} (\methodfullname{}), a black-box optimization framework for generating malicious MCP tools. Our key insight is that tool-based attacks require optimizing two distinct objectives: (1) \textit{attraction}, maximizing the probability that an agent selects the malicious tool, and (2) \textit{manipulation}, maximizing the probability of manipulating agent behavior to achieve the attack goal once selected. We decouple these objectives into a two-phase optimization process, guided by execution trace analysis.
 
 \subsection{Problem Formulation}
 
@@ -186,11 +186,11 @@ f(\tau) = \indicator[\tilde{t} \in \tau] \cdot (1 - r_{\mathrm{success}})
 where $r_{\mathrm{success}}$ is the task success rate. Higher fitness indicates greater disruption to agent functionality.
 
 \paragraph{Algorithm summary.}
-Algorithm~\ref{alg:a2m} summarizes the complete A2M framework.
+Algorithm~\ref{alg:a2m} summarizes the complete \methodname{} framework.
 
 \begin{algorithm}[t]
 \small % 使用较小字号以适应双栏排版或节省空间
-\caption{A2M: Attraction-to-Manipulation Optimization}
+\caption{\methodname{}: \methodfullname{}}
 \label{alg:a2m}
 \begin{algorithmic}[1]
 \Require Victim agent $\pi$, Query $q$, Target $y^*$, Strategies $\mathcal{S}$
