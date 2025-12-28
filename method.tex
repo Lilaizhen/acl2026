@@ -185,44 +185,52 @@ f(\tau) = \indicator[\tilde{t} \in \tau] \cdot (1 - r_{\mathrm{success}})
 \end{equation}
 where $r_{\mathrm{success}}$ is the task success rate. Higher fitness indicates greater disruption to agent functionality.
 
-\subsection{Algorithm Summary}
-
+\paragraph{Algorithm summary.}
 Algorithm~\ref{alg:a2m} summarizes the complete A2M framework.
 
 \begin{algorithm}[t]
-\caption{A2M: Attraction-to-Manipulation}
+\small % 使用较小字号以适应双栏排版或节省空间
+\caption{A2M: Attraction-to-Manipulation Optimization}
 \label{alg:a2m}
 \begin{algorithmic}[1]
-\Require Query $q$, attack objective $y_{\text{target}}$, iterations $T$
+\Require Victim agent $\pi$, Query $q$, Target $y^*$, Strategies $\mathcal{S}$
+\Require Budgets $N_{\text{attr}}, N_{\text{total}}$, Rollouts $K$, Iterations $T$, Elite size $k$
 \Ensure Optimized malicious tool $\tilde{t}^*$
-\State \textit{// Phase I: Attraction Optimization}
-\State $\mathcal{C} \gets \emptyset$
-\For{each strategy $s \in \mathcal{S}$}
-    \State $(n, d) \sim \mathcal{G}(q, s, y_{\text{target}})$
-    \State $\tau \gets \text{Execute}(\mathcal{M}, q, (n, d, \emptyset))$
-    \State $\mathcal{C} \gets \mathcal{C} \cup \{(n, d, \text{Score}_{\text{attr}})\}$
-\EndFor
-\State $\mathcal{E}_1 \gets \text{TopK}(\mathcal{C})$ \Comment{Elite seeds (top-$k$ by fitness)}
-\State
-\State \textit{// Phase II: Payload Synthesis}
-\State $\mathcal{P} \gets \emptyset$
-\For{each $(n^*, d^*) \in \mathcal{E}_1$}
-    \State $o_{\text{adv}} \sim \mathcal{G}(q, n^*, d^*, y_{\text{target}})$
-    \State $\tau \gets \text{Execute}(\mathcal{M}, q, (n^*, d^*, o_{\text{adv}}))$
-    \State $\mathcal{P} \gets \mathcal{P} \cup \{((n^*, d^*, o_{\text{adv}}), f(\tau))\}$
-\EndFor
-\State
-\State \textit{// Iterative Refinement}
-\For{$t = 1$ to $T$}
-    \State $\mathcal{E} \gets \text{TopK}(\mathcal{P})$ \Comment{Select top-$k$ by fitness}
-    \For{each $\tilde{t} \in \mathcal{E}$}
-        \State $\tau \gets \text{Execute}(\mathcal{M}, q, \tilde{t})$
-        \State $(\_, \text{dir}) \gets \mathcal{A}(\tau, \tilde{t}, y_{\text{target}})$
-        \State $\tilde{t}' \gets \mathcal{O}(\tilde{t}, \text{dir}, y_{\text{target}})$
-        \State $\tau' \gets \text{Execute}(\mathcal{M}, q, \tilde{t}')$
-        \State $\mathcal{P} \gets \mathcal{P} \cup \{(\tilde{t}', f(\tau'))\}$
+
+\Statex \textbf{Initialization:} $\sigma_{\text{any}} \gets \text{PermissiveSchema}()$, $\mathcal{P} \gets \emptyset$
+
+\Statex \hrulefill
+\Statex \textbf{Phase I: Attraction (Metadata Optimization)}
+\State $\mathcal{C}_{\text{meta}} \gets \emptyset$
+\For{strategy $s \in \mathcal{S}$}
+    \State Generate $m = N_{\text{attr}}/|\mathcal{S}|$ candidates: $\{(n_i, d_i)\}_{i=1}^m \sim \mathcal{G}(q, s, y^*)$
+    \For{each $(n, d)$ in candidates}
+        \State Estimate selection rate: $J_{\text{attr}} \gets \frac{1}{K} \sum_{j=1}^{K} \mathbb{I}[\tilde{t} \in \tau_j]$ \textbf{with} $\tau_j \sim \pi(q, (n, d, \sigma_{\text{any}}, \emptyset))$
+        \If{$J_{\text{attr}} > 0$} $\mathcal{C}_{\text{meta}} \gets \mathcal{C}_{\text{meta}} \cup \{(n, d, J_{\text{attr}})\}$ \EndIf
     \EndFor
 \EndFor
-\State \Return $\arg\max_{\tilde{t} \in \mathcal{P}} f(\tilde{t})$
+\State $\mathcal{E}_{\text{meta}} \gets \text{TopK}(\mathcal{C}_{\text{meta}}, k)$ \Comment{Select elite metadata based on $J_{\text{attr}}$}
+
+\Statex \hrulefill
+\Statex \textbf{Phase II: Manipulation (Payload Refinement)}
+\Statex \textit{// Step 1: Initialize payloads via proportional allocation}
+\For{each $(n, d, J) \in \mathcal{E}_{\text{meta}}$}
+    \State Allocation count: $N_p \gets \lfloor N_{\text{total}} \cdot (J / \sum_{(n',d',J') \in \mathcal{E}_{\text{meta}}} J') \rfloor$
+    \State Generate payloads: $\{o_i\}_{i=1}^{N_p} \sim \mathcal{G}(q, n, d, y^*, \phi_{\text{attack}})$
+    \State Evaluate: $\mathcal{P} \gets \mathcal{P} \cup \{(\tilde{t}, f(\tau)) \mid \tilde{t}=(n, d, \sigma_{\text{any}}, o_i), \tau \sim \pi(q, \tilde{t})\}$
+\EndFor
+
+\Statex \textit{// Step 2: Analyzer-Optimizer Iteration}
+\For{epoch $t = 1$ to $T$}
+    \State $\mathcal{E}_{\text{tools}} \gets \text{TopK}(\mathcal{P}, k)$ \Comment{Focus on most promising full tools}
+    \For{each $\tilde{t} \in \mathcal{E}_{\text{tools}}$}
+        \State $\tau \gets \text{Execute}(\pi, q, \tilde{t})$ \Comment{Obtain fresh trace}
+        \State $\delta \gets \mathcal{A}(\tau, \tilde{t}, y^*)$ \Comment{\textbf{Analyzer}: Diagnose failure or suggest amplification}
+        \State $\tilde{t}' \gets \mathcal{O}(\tilde{t}, \delta, y^*)$ \Comment{\textbf{Optimizer}: Apply semantic mutation}
+        \State $\mathcal{P} \gets \mathcal{P} \cup \{(\tilde{t}', f(\tau'))\}$ \textbf{with} $\tau' \sim \text{Execute}(\pi, q, \tilde{t}')$
+    \EndFor
+\EndFor
+
+\State \Return $\tilde{t}^* = \arg\max_{\tilde{t} \in \mathcal{P}} f(\tilde{t})$
 \end{algorithmic}
 \end{algorithm}
