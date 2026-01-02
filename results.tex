@@ -91,32 +91,6 @@ Table~\ref{tab:all-in-one-compact} presents comprehensive results across all att
 (3) \textbf{Information leakage is harder to trigger.} In our setup, ASR for information leakage is generally lower than for backdoor injection. Non-zero ASR on Kimi and GLM suggests that successful leakage depends on specific agent internals and particular task types.
 (4) For the task-failure scenario, \methodname{} induces a substantial drop in completion rate on the source model: Kimi's completion rate falls from 49\% to 20\%, yielding \(\Delta C = 29\) percentage points. By contrast, the effect on transferred models is minimal.This suggests that inducing measurable task failures depends more on the specific interactions between the source model and the task set, whereas cross-model transfer primarily propagates increased internal resource usage and elevated backdoor injection risk.
 \subsection{Ablation Analysis}
-To quantify the effect of different crossover strategies and the inclusion of tool return content, we perform a controlled ablation study. All variants share the same initialization, population size, iteration budget, and evaluation harness used for the experiments above. For this analysis we report the average weighted token multiplier (Cost$\times$), computed as the mean across tasks (output tokens weighted 5:1 vs input tokens), and the post-run task completion rate (Comp.\%).
-
-\textbf{Random Crossover.} Pair the highest-fitness candidate with a randomly selected secondary parent for crossover. This variant increases stochasticity but removes the deliberate semantic farthest-selection, which reduces the method's ability to discover semantically diverse, high-impact candidates.
-
-\textbf{Nearest Crossover.} Pair the highest-fitness candidate with its semantically closest neighbor in embedding space. This configuration promotes rapid local refinement at the expense of exploration, causing candidate collapse into narrow variants with lower effectiveness at inducing extra internal processing.
-
-\textbf{Name+Description Only.} Restrict candidates to only \texttt{name} and \texttt{desc}, leaving the \texttt{out} field empty. This isolates the contribution of return content and tests whether name/description manipulation alone suffices to increase resource usage.
-
-\begin{table}[t]
-  \centering
-  \begin{tabular}{lcc}
-    \hline
-    \textbf{Variant} & \textbf{Cost$\times$} & $\Delta_{\text{Cost}}$ vs. Full \\
-    \hline
-    Full \methodname{} (ours)      & 2.33$\times$  & -- \\
-    Random Crossover      & 2.15$\times$  & -0.18 \\
-    Nearest Crossover     & 1.98$\times$  & -0.35 \\
-    Name+Desc Only        & 1.24$\times$   & -1.09 \\
-    \hline
-  \end{tabular}
-  \caption{Ablation study (Resource usage). Cost$\times$ is the average weighted token multiplier $\bar\mu$ (output tokens weighted 5:1 vs input). $\Delta_{\text{Cost}}$ shows the absolute decrease in Cost$\times$ relative to the full method.}
-  \label{tab:ablation_costs}
-\end{table}
-
-\paragraph{Ablation findings.}
-Replacing semantic farthest-selection with either random or nearest semantic pairing reduces the method's ability to find candidates that cause pronounced increases in internal token consumption and redundant reasoning. Removing the \texttt{out} field yields the largest reduction, indicating that crafted return content is a primary driver of increased internal processing. Across variants, task completion rates remain relatively stable, implying that \methodname{} mainly increases internal resource usage and latent complexity rather than immediately causing observable task failures.
 
 \subsection{Optimization dynamics}
 Figure~\ref{fig:iteration_growth} shows the averaged Cost$\times$ over \methodname{} iterations. The search follows two phases: an early phase (about 5 to 10 iterations) with rapid gains, and a later phase that gradually plateaus by iteration 20. On average Cost$\times$ rises from roughly 1.6 at initialization to about 2.3 at iteration 20. Most attack strength is obtained in the early iterations, while later iterations provide minor refinement and robustness.
