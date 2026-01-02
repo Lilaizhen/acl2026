@@ -84,15 +84,3 @@ Table~\ref{tab:all-in-one-compact} presents comprehensive results across all att
   \caption{Summary of performance across attack scenarios. Columns show internal token consumption (Cost$\times$), task completion (Comp.\%), malicious tool invocation (MTIR), and attack success rates (ASR\%) per scenario. \methodname{} is optimized on Kimi-K2 and then transferred to DeepSeek and GLM to evaluate cross-model transferability.}
   \label{tab:all-in-one-compact}
 \end{table*}
-
-\paragraph{Main observations.}
-(1) \textbf{On-source resource impact.} \methodname{} optimized on Kimi-K2 increases internal token consumption and redundant reasoning steps by more than twofold (2.23$\times$), while observable task completion rates remain close to baseline. This indicates the attack raises internal resource usage and latency without immediately producing visible failures.  
-(2) \textbf{Cross-model transfer.} Kimi-optimized adversarial tools transfer to DeepSeek-V3.1 and GLM-4.5 with measurable increases in internal resource usage (1.77$\times$ and 1.54$\times$, respectively). Transfer ASR for backdoor injection is non-negligible (20\% for DeepSeek, 27\% for GLM), which suggests shared semantic weaknesses in tool-selection and internal processing across models.  
-(3) \textbf{Information leakage is harder to trigger.} In our setup, ASR for information leakage is generally lower than for backdoor injection. Non-zero ASR on Kimi and GLM suggests that successful leakage depends on specific agent internals and particular task types.
-(4) For the task-failure scenario, \methodname{} induces a substantial drop in completion rate on the source model: Kimi's completion rate falls from 49\% to 20\%, yielding \(\Delta C = 29\) percentage points. By contrast, the effect on transferred models is minimal.This suggests that inducing measurable task failures depends more on the specific interactions between the source model and the task set, whereas cross-model transfer primarily propagates increased internal resource usage and elevated backdoor injection risk.
-\subsection{Ablation Analysis}
-
-\subsection{Optimization dynamics}
-Figure~\ref{fig:iteration_growth} shows the averaged Cost$\times$ over \methodname{} iterations. The search follows two phases: an early phase (about 5 to 10 iterations) with rapid gains, and a later phase that gradually plateaus by iteration 20. On average Cost$\times$ rises from roughly 1.6 at initialization to about 2.3 at iteration 20. Most attack strength is obtained in the early iterations, while later iterations provide minor refinement and robustness.
-
-\paragraph{Takeaway.} The experimental evidence shows that \methodname{} can (i) substantially increase internal resource usage on the source model while preserving outward task plausibility, and (ii) transfer meaningful adversarial effects to other agent families. The ablation study attributes the effectiveness mainly to semantic exploration via farthest-selection and to crafted return content.
