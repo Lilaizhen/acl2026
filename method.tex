@@ -51,15 +51,21 @@ We model the agent policy as $\pi: \mathcal{S} \to \Delta(\mathcal{A})$; at each
 Let $\mathcal{T}$ denote the set of available tools. Our attack introduces a malicious tool instance $\tilde{t} \in \mathcal{T}$, defined by its metadata and payload: $\tilde{t} = (n, d, o_{\text{adv}})$, where $n$ is the name, $d$ is the description, and $o_{\text{adv}}$ is the attack payload.
 
 \paragraph{Execution Trace.}
-The agent generates an execution trace $\tau$ over $T$ decision steps:
+We initialize an empty execution record $H_0 = []$.
+The agent generates an execution trace $\tau$ over $K$ decision steps:
 \begin{equation}
-    \tau = ((s_0, a_0), (s_1, a_1), \dots, (s_{T-1}, a_{T-1}), s_T)
+    \tau = ((s_0, a_0), (s_1, a_1), \dots, (s_{K-1}, a_{K-1}), s_K)
 \end{equation}
-where $T$ is the total number of steps. The state transition is stochastic because MCP tool outputs are nondeterministic. We model the environment transition kernel as $\mathcal{P}: \mathcal{S} \times \mathcal{A} \to \Delta(\mathcal{S})$ and write
+where $K$ is the maximum number of decision steps before termination.
+The state transition is stochastic because MCP tool outputs are nondeterministic.
+We model the environment transition kernel as $\mathcal{P}: \mathcal{S} \times \mathcal{A} \to \Delta(\mathcal{S})$ and write
 \begin{equation}
     s_{k+1} \sim \mathcal{P}(s_k, a_k)
 \end{equation}
 to denote sampling the next state from the environment-induced transition kernel driven by external tool returns.
+Concretely, executing $a_k$ yields an observable outcome $o_k$ (a text continuation for reasoning steps or the return value for tool calls), which we append to the execution record to form $H_{k+1}$ by concatenating $(a_k, o_k)$ to $H_k$.
+The subsequent state is therefore $s_{k+1} = (q, H_{k+1})$, making the transition explicit.
+The trace unfolds by alternating policy sampling and environment transition: starting from $s_0 = (q, H_0)$, at each step $k$ we draw $a_k \sim \pi(s_k)$ and then sample $s_{k+1} \sim \mathcal{P}(s_k, a_k)$ until the agent emits a final response or the step budget $K$ is reached.
 \paragraph{Attack Objective.}
 Our optimization goal is to discover a malicious tool configuration $\tilde{t}^*$ that maximizes the expected attack success across all possible execution traces. Formally, we seek:
 \begin{equation}
