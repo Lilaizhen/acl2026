@@ -1,19 +1,49 @@
 \begin{algorithm}[t]
-\caption{Semantic MCP Tool Hijacking Semantic Attack Generation}
-\label{alg:genetic-attack}
+\caption{\textsc{A2M}: Attraction-to-Manipulation Framework}
+\label{alg:a2m}
 \begin{algorithmic}[1]
-\Statex \textbf{Input:} Target MCP tool set $\mathcal{T}$, attack objectives $\mathcal{A}$, population size $N$, generations $G$
-\Statex \textbf{Output:} Optimized attack prompts $\{p_i\}_{i=1}^N$
+% Inputs and Constraints
+\Require Victim agent $\pi$, Query $q$, Target $y^*$, Strategies $\mathcal{S}$
+\Require Budgets $N_{attr}, N_{total}$, Hyperparams $K_{roll}, T, k$
+\Ensure Optimized malicious tool $\tilde{t}^*$
 
-\State Initialize population $\mathcal{P}_0 = \{p_j\}_{j=1}^N$ with random prompts
-\For{$g = 1$ to $G$}
-    \State Evaluate fitness: $\mathcal{F}(p_j)$ for each $p_j \in \mathcal{P}_{g-1}$
-    \State Select parents using tournament selection
-    \State Generate offspring through crossover and mutation
-    \State Apply semantic constraints to maintain attack validity
-    \State Update population: $\mathcal{P}_g = \sigma(\mathcal{P}_{g-1} \cup \text{offspring})$
+\Statex
+\Statex \textbf{Phase I: Attraction (Metadata Optimization)}
+\State $\mathcal{C}_{meta} \leftarrow \emptyset$
+\For{strategy $s \in \mathcal{S}$}
+    \State $\{(n_i, d_i)\} \sim \mathcal{G}(q, s)$ \Comment{Sample metadata candidates}
+    \For{each $(n, d)$}
+        \State $J \leftarrow \textsc{EstAttraction}(\pi, q, n, d)$ \Comment{Compute selection rate via Eq. (7)}
+        \If{$J > 0$} \State $\mathcal{C}_{meta} \leftarrow \mathcal{C}_{meta} \cup \{(n, d, J)\}$ \EndIf
+    \EndFor
 \EndFor
-\State \Return best attack prompts from final population
+\State $\mathcal{E}_{meta} \leftarrow \textsc{TopK}(\mathcal{C}_{meta}, k)$ \Comment{Select elite metadata templates}
 
+\Statex
+\Statex \textbf{Phase II: Manipulation (Payload Optimization)}
+\Statex \textit{1. Initialization (Population Generation)}
+\State $Z \leftarrow \sum_{(n,d,J) \in \mathcal{E}_{meta}} J$; \quad $\mathcal{P} \leftarrow \emptyset$
+\For{each $(n, d, J) \in \mathcal{E}_{meta}$}
+    \State $N_p \leftarrow \lfloor N_{total} \cdot (J/Z) \rfloor$ \Comment{Proportional budget allocation (Eq. 8)}
+    \State $\{o_i\} \sim \mathcal{G}(q, n, d, y^*)$ \Comment{Sample initial payloads}
+    \For{each $o_i$}
+        \State $\tilde{t} \leftarrow (n, d, o_i)$; \quad $v \leftarrow \textsc{Evaluate}(\pi, q, \tilde{t})$ \Comment{Get fitness via Eq. (12) or (13)}
+        \State $\mathcal{P} \leftarrow \mathcal{P} \cup \{(\tilde{t}, v)\}$
+    \EndFor
+\EndFor
+
+\Statex \textit{2. Refinement (Analyzer-Optimizer Loop)}
+\For{epoch $t = 1$ to $T$}
+    \State $\mathcal{E}_{tools} \leftarrow \textsc{TopK}(\mathcal{P}, k)$
+    \For{each $(\tilde{t}, \_) \in \mathcal{E}_{tools}$}
+        \State $\tau \leftarrow \textsc{Execute}(\pi, q, \tilde{t})$ \Comment{Obtain execution trace}
+        \State $\delta \leftarrow \mathcal{A}(\tau, \tilde{t}, y^*)$ \Comment{\textbf{Analyzer}: Diagnose failure (Eq. 10)}
+        \State $\tilde{t}' \leftarrow \mathcal{O}(\tilde{t}, \delta, y^*)$ \Comment{\textbf{Optimizer}: Apply directed mutation (Eq. 11)}
+        \State $v' \leftarrow \textsc{Evaluate}(\pi, q, \tilde{t}')$
+        \State $\mathcal{P} \leftarrow \mathcal{P} \cup \{(\tilde{t}', v')\}$ \Comment{Update population with refined tool}
+    \EndFor
+\EndFor
+
+\State \Return $\tilde{t}^* = \arg\max_{(\tilde{t}, v) \in \mathcal{P}} v$
 \end{algorithmic}
 \end{algorithm}
