@@ -44,6 +44,9 @@ A state $s_k \in \mathcal{S}$ at step $k$ represents the agent's current observa
 \paragraph{Action Space ($\mathcal{A}$).}
 At each step $k$, the agent selects an action $a_k \in \mathcal{A}$, which can be a reasoning step, a tool call, or a final response.
 
+\paragraph{Policy ($\pi$).}
+We model the agent policy as $\pi: \mathcal{S} \to \Delta(\mathcal{A})$; at each decision step $k$, the action is sampled as $a_k \sim \pi(s_k)$.
+
 \paragraph{Tool Environment ($\mathcal{T}$).}
 Let $\mathcal{T}$ denote the set of available tools. Our attack introduces a malicious tool instance $\tilde{t} \in \mathcal{T}$, defined by its metadata and payload: $\tilde{t} = (n, d, o_{\text{adv}})$, where $n$ is the name, $d$ is the description, and $o_{\text{adv}}$ is the attack payload.
 
