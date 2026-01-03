@@ -1,19 +1,19 @@
 \begin{algorithm}[t]
 \caption{\textsc{A2M}: Attraction-to-Manipulation Framework}
-\label{alg:a2m}
+\label{alg:a2m-appendix}
 \begin{algorithmic}[1]
 % Inputs and Constraints
-\Require Victim agent $\pi$, Query $q$, Target $y^*$, Strategies $\mathcal{S}$
-\Require Budgets $N_{attr}, N_{total}$, Hyperparams $K_{roll}, T, k$
+\Require Victim agent $\pi$, Query $q$, Target $y_{\text{guidance}}$, Strategies $\mathcal{R}$
+\Require Budgets $N_{attr}, N_{total}$, Hyperparams $K_{roll}, E, k$
 \Ensure Optimized malicious tool $\tilde{t}^*$
 
 \Statex
 \Statex \textbf{Phase I: Attraction (Metadata Optimization)}
 \State $\mathcal{C}_{meta} \leftarrow \emptyset$
-\For{strategy $s \in \mathcal{S}$}
-    \State $\{(n_i, d_i)\} \sim \mathcal{G}(q, s)$ \Comment{Sample metadata candidates}
+\For{strategy $r \in \mathcal{R}$}
+    \State $\{(n_i, d_i)\} \sim \mathcal{G}(q, r)$ \Comment{Sample metadata candidates}
     \For{each $(n, d)$}
-        \State $J \leftarrow \textsc{EstAttraction}(\pi, q, n, d)$ \Comment{Compute selection rate via Eq. (7)}
+        \State $J \leftarrow \textsc{EstAttraction}(\pi, q, n, d)$ \Comment{Estimate selection rate}
         \If{$J > 0$} \State $\mathcal{C}_{meta} \leftarrow \mathcal{C}_{meta} \cup \{(n, d, J)\}$ \EndIf
     \EndFor
 \EndFor
@@ -22,28 +22,28 @@
 \Statex
 \Statex \textbf{Phase II: Manipulation (Payload Optimization)}
 \Statex \textit{1. Initialization (Population Generation)}
-\State $Z \leftarrow \sum_{(n,d,J) \in \mathcal{E}_{meta}} J$; \quad $\mathcal{P} \leftarrow \emptyset$
+\State $Z \leftarrow \sum_{(n,d,J) \in \mathcal{E}_{meta}} J$; \quad $\mathcal{Q} \leftarrow \emptyset$
 \For{each $(n, d, J) \in \mathcal{E}_{meta}$}
-    \State $N_p \leftarrow \lfloor N_{total} \cdot (J/Z) \rfloor$ \Comment{Proportional budget allocation (Eq. 8)}
-    \State $\{o_i\} \sim \mathcal{G}(q, n, d, y^*)$ \Comment{Sample initial payloads}
+    \State $N_p \leftarrow \lfloor N_{total} \cdot (J/Z) \rfloor$ \Comment{Proportional budget allocation}
+    \State $\{o_i\} \sim \mathcal{G}(q, n, d, y_{\text{guidance}})$ \Comment{Sample initial payloads}
     \For{each $o_i$}
-        \State $\tilde{t} \leftarrow (n, d, o_i)$; \quad $v \leftarrow \textsc{Evaluate}(\pi, q, \tilde{t})$ \Comment{Get fitness via Eq. (12) or (13)}
-        \State $\mathcal{P} \leftarrow \mathcal{P} \cup \{(\tilde{t}, v)\}$
+        \State $\tilde{t} \leftarrow (n, d, o_i)$; \quad $v \leftarrow \textsc{Evaluate}(\pi, q, \tilde{t})$ \Comment{Get fitness}
+        \State $\mathcal{Q} \leftarrow \mathcal{Q} \cup \{(\tilde{t}, v)\}$
     \EndFor
 \EndFor
 
 \Statex \textit{2. Refinement (Analyzer-Optimizer Loop)}
-\For{epoch $t = 1$ to $T$}
-    \State $\mathcal{E}_{tools} \leftarrow \textsc{TopK}(\mathcal{P}, k)$
+\For{epoch $e = 1$ to $E$}
+    \State $\mathcal{E}_{tools} \leftarrow \textsc{TopK}(\mathcal{Q}, k)$
     \For{each $(\tilde{t}, \_) \in \mathcal{E}_{tools}$}
         \State $\tau \leftarrow \textsc{Execute}(\pi, q, \tilde{t})$ \Comment{Obtain execution trace}
-        \State $\delta \leftarrow \mathcal{A}(\tau, \tilde{t}, y^*)$ \Comment{\textbf{Analyzer}: Diagnose failure (Eq. 10)}
-        \State $\tilde{t}' \leftarrow \mathcal{O}(\tilde{t}, \delta, y^*)$ \Comment{\textbf{Optimizer}: Apply directed mutation (Eq. 11)}
+        \State $\delta \leftarrow \mathcal{D}(\tau, \tilde{t}, y_{\text{guidance}})$ \Comment{\textbf{Analyzer}: Diagnose failure}
+        \State $\tilde{t}' \leftarrow \mathcal{O}(\tilde{t}, \delta, y_{\text{guidance}})$ \Comment{\textbf{Optimizer}: Apply directed mutation}
         \State $v' \leftarrow \textsc{Evaluate}(\pi, q, \tilde{t}')$
-        \State $\mathcal{P} \leftarrow \mathcal{P} \cup \{(\tilde{t}', v')\}$ \Comment{Update population with refined tool}
+        \State $\mathcal{Q} \leftarrow \mathcal{Q} \cup \{(\tilde{t}', v')\}$ \Comment{Update population with refined tool}
     \EndFor
 \EndFor
 
-\State \Return $\tilde{t}^* = \arg\max_{(\tilde{t}, v) \in \mathcal{P}} v$
+\State \Return $\tilde{t}^* = \arg\max_{(\tilde{t}, v) \in \mathcal{Q}} v$
 \end{algorithmic}
 \end{algorithm}
