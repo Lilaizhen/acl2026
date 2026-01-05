@@ -38,9 +38,15 @@ jobs:
       - name: Check for ACL errors
         run: |
           if [ "$(cat errors-paper.json)" != "{}" ]; then
-            echo "ACL pubcheck failed. Errors found:"
+            echo "ACL pubcheck errors found:"
             cat errors-paper.json
-            exit 1
+            # Only fail if not in review mode (review mode has line numbers that violate formatting)
+            if grep -q '\\usepackage\[review\]' paper.tex; then
+              echo "Paper is in review mode - formatting violations expected, not failing build"
+            else
+              echo "Paper is in final/preprint mode - failing build due to formatting errors"
+              exit 1
+            fi
           fi
       - name: Create PDF Release
         id: create_release
