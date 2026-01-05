@@ -1,3 +1,35 @@
 \begin{abstract}
-The evolution of Large Language Models into autonomous agents via the Model Context Protocol (MCP) introduces a critical security vulnerability because agents rely on semantic matching to select tools from unverified third-party MCP servers. This creates a novel semantic supply chain attack surface. We introduce \textbf{\methodname{}} (\methodfullname{}), a two-stage black-box optimization framework designed to systematically hijack MCP agents. \methodname{} first optimizes tool metadata to maximize selection probability through an Attraction phase and subsequently employs a trace-driven Analyzer-Optimizer to craft adversarial return payloads that steer agent reasoning during a Manipulation phase. Extensive evaluations on LiveMCPBench across various frontier models, including both proprietary and open-weight architectures, demonstrate the severity of this threat. \methodname{} achieves high success rates across cognitive denial of service, information exfiltration, and environment compromise, inflating internal token costs by up to $32.4\times$. Furthermore, optimized tools exhibit strong transferability to unseen models and successfully bypass existing perplexity-based defenses and lightweight auditors. Our findings underscore the fragility of the semantic selection layer and highlight an urgent need for robust vetting and isolation mechanisms in agentic ecosystems.
+The evolution of Large Language Models into autonomous agents
+via the Model Context Protocol (MCP)
+introduces a critical security vulnerability
+because agents rely on semantic matching
+to select tools from unverified third-party MCP servers.
+This creates a novel semantic supply chain attack surface.
+We introduce \textbf{\methodname{}} (\methodfullname{}),
+a two-stage black-box optimization framework
+designed to systematically hijack MCP agents.
+\methodname{} first optimizes tool metadata
+to maximize selection probability
+through an Attraction phase
+and subsequently employs a trace-driven Analyzer-Optimizer
+to craft adversarial return payloads
+that steer agent reasoning
+during a Manipulation phase.
+Extensive evaluations on LiveMCPBench tasks
+across various frontier models,
+including both proprietary and open-weight architectures,
+demonstrate the severity of this threat.
+\methodname{} achieves high success rates
+across cognitive denial of service,
+information exfiltration,
+and environment compromise,
+inflating internal token costs by up to $32.4\times$.
+Furthermore,
+optimized tools exhibit strong transferability to unseen models
+and successfully bypass existing perplexity-based defenses
+and lightweight auditors.
+Our findings underscore the fragility of the tool selection layer
+and highlight an urgent need
+for robust vetting and isolation mechanisms
+in agentic ecosystems.
 \end{abstract}
