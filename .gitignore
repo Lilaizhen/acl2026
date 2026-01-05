@@ -3,6 +3,8 @@
 *.log
 *.out
 *.pdf
+# Keep final figure checked in
+!figures/acl_figure1.pdf
 *.dvi
 *.ps
 *.bbl
