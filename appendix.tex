@@ -66,10 +66,10 @@ Table~\ref{tab:hyperparameters} lists the specific hyperparameters used in the A
 
 \begin{table}[t]
   \centering
-  \setlength{\tabcolsep}{4pt}
   \caption{Hyperparameters used in \methodname{} optimization.}
   \label{tab:hyperparameters}
-  \begin{tabular}{@{} p{0.65\linewidth} >{\raggedleft\arraybackslash}p{0.25\linewidth} @{}}
+  \adjustbox{max width=\linewidth}{%
+  \begin{tabular}{@{} lr @{}}
     \toprule
     \textbf{Hyper-parameter} & \textbf{Value} \\
     \midrule
@@ -80,7 +80,7 @@ Table~\ref{tab:hyperparameters} lists the specific hyperparameters used in the A
     $E$ (Total iterations) & 10 \\
     $K$ (Max decision steps) & 40 \\
     \bottomrule
-  \end{tabular}
+  \end{tabular}}
 \end{table}
 
 \subsection{Computational Resources}
