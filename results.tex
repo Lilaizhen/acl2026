@@ -42,11 +42,12 @@ for a given task $u_i$:
         \mathrm{cost}_{\text{non-attack}}(u_i)
     }
 \end{equation}
-where output tokens are weighted 5:1 vs input tokens,
+where output tokens are weighted 5:1 \versus{} input tokens,
 and $\mathrm{Cost\times}_i > 1$
 indicates increased internal resource consumption.
 
-\textbf{Reasoning Derailment (RD)}, \textbf{Environment Integrity Compromise (EIC)},
+\textbf{Reasoning Derailment (RD)},
+\textbf{Environment Integrity Compromise (EIC)},
 and \textbf{Information Exfiltration (IE)}
 are evaluated using attack success rate (ASR):
 \begin{equation}
@@ -115,7 +116,7 @@ and $64.9$ on GPT-5.
 Although absolute ASR is lower on non-source models,
 A2M still beats or matches the strongest baseline
 in most metrics
-(e.g., RD ASR $56.1$ on DeepSeek-V3.1 and $39.0$ on Kimi-K2-0905),
+(\eg{}, RD ASR $56.1$ on DeepSeek-V3.1 and $39.0$ on Kimi-K2-0905),
 indicating the two-phase pipeline
 captures model-agnostic semantic cues
 that generalize beyond the optimization target.
