@@ -112,23 +112,10 @@ as illustrated in Figure~\ref{fig:method-overview}.
 \begin{figure*}[t]
     \centering%
     \includegraphics[
-        width=0.9\linewidth,trim=2.5cm 1cm 9cm 10pt
+        width=0.9\linewidth,trim=1cm 3cm 13cm 10pt
     ]{figures/acl_figure2.pdf}
     \caption{%
-        Overview of \methodname{}.
-        Phase~I optimizes tool name/description for Attraction,
-        seeding candidates
-        via persuasion strategies
-        and retaining elites
-        with Monte Carlo rollouts.
-        Phase~II conditions payload generation
-        on elite metadata
-        and the target scenario
-        (C-DoS/IE/EIC/RD),
-        then iteratively
-        applies the Analyzer-Optimizer loop
-        to refine metadata and payloads
-        using execution-trace feedback.
+        Figure 2: Overview of A2M.Phase I: Attraction employs persuasion strategies and Monte Carlo rollouts to identify elite $(n^*, d^*)$ metadata. Phase II: Manipulation conditions generation on Attack Guidance and utilizes an Analyzer ($\mathcal{D}$) to interpret the execution trace ($\tau$); its feedback guides the Optimizer ($\mathcal{O}$) to refine the payload, yielding the final Optimized $\tilde{t}^*$.
     } \label{fig:method-overview}
 \end{figure*}
 
