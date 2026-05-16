@@ -1,0 +1,324 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\setlist[itemize]{leftmargin=*, itemsep=0.25em, topsep=0.25em}
+\setlist[enumerate]{leftmargin=*, itemsep=0.25em, topsep=0.25em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+
+\title{\vspace{-2em}Explanation of Revisions}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-3em}
+
+This document describes the revisions made to the manuscript
+\emph{A2M: Trace-Optimized Agent Hijacking in the MCP Ecosystem}
+since its previous ARR submission.
+The document is written to preserve anonymity
+and is not a copy of the in-cycle author response.
+
+\section{Overview of Major Revisions}
+
+We made substantial revisions in response to the previous reviews
+and the meta-review.
+The main changes are summarized below.
+
+\begin{itemize}
+  \item \textbf{Revised novelty framing.}
+  We removed or softened claims that MCP tool integration is a wholly novel
+  attack surface.
+  The paper now frames the contribution as a systematic method
+  for exploiting a semantic supply-chain risk
+  through coupled metadata optimization and trace-guided return-payload
+  refinement.
+  This change is reflected in the Abstract, Introduction,
+  Related Work, and Threat Model sections.
+
+  \item \textbf{Expanded related work.}
+  We substantially revised the discussion of related MCP security work,
+  including malicious MCP servers, parasitic toolchains,
+  preference manipulation, metadata-based tool-selection attacks,
+  and tool-selection perturbation attacks.
+  The revised Related Work section now more clearly distinguishes A2M
+  from prior metadata-only or tool-selection-focused attacks.
+
+  \item \textbf{Clarified the two-stage formulation.}
+  We moved the definitions of \emph{Attraction} and \emph{Manipulation}
+  earlier in the paper and clarified that the two objectives are coupled
+  during execution but are decoupled as optimization stages
+  to make black-box search tractable.
+
+  \item \textbf{Clarified the information exfiltration mechanism.}
+  We revised the threat objective for Information Exfiltration
+  to state that sensitive data is sent as arguments
+  to the attacker-controlled malicious tool endpoint.
+  This clarifies how exfiltration occurs without requiring attacker access
+  to the victim's local agent logs.
+
+  \item \textbf{Added and reorganized experiments.}
+  We added AMA as a metadata-only attraction baseline,
+  added cross-query generalization analysis,
+  added failure-mode analysis,
+  and added a ToolTweak-style paraphrase defense evaluation.
+  To keep the main paper focused,
+  detailed cross-query generalization and defense tables
+  are reported in the appendix,
+  with concise pointers in the main results section.
+
+  \item \textbf{Expanded limitations and resource reporting.}
+  We expanded the Limitations section to explicitly discuss
+  system-prompt shifts, routing policies, tool renaming,
+  safety wrappers, and changes in tool-pool composition.
+  We also added aggregate token usage and estimated monetary cost
+  for GLM-4.6 optimization and evaluation in the appendix.
+\end{itemize}
+
+\section{Response to the Meta-Review}
+
+\textbf{Concern: Defense analysis.}
+The meta-review noted that the previous version evaluated only
+perplexity-based heuristics and a single auditor.
+In Section 5.2 and Appendix E.1 (Defense Evaluation),
+we added a ToolTweak-style paraphrase defense evaluation.
+The revised paper now evaluates three defense families:
+GPT-2 perplexity-based detection,
+an LLM-based auditor implemented with Qwen3-8B,
+and metadata paraphrasing.
+The detailed defense results are reported in Tables 8 and 9,
+with a concise pointer in the main results section.
+
+\textbf{Concern: Robustness and generalization.}
+In Section 5.2 and Appendix B.2 (Cross-Query Generalization),
+we added a cross-query generalization study
+to test whether optimized metadata overfits to a single query.
+The revised appendix reports results in Table 5
+on 50 held-out analogous queries
+constructed from 10 base tasks.
+A2M maintains high MTIR across all five evaluated models,
+indicating that the Attraction stage captures reusable semantic cues
+rather than only per-query artifacts.
+We also expanded the Limitations section to explicitly acknowledge
+remaining robustness dimensions not systematically varied in this paper,
+including system prompts, routing policies, tool renaming,
+safety wrappers, and tool-pool composition.
+
+\textbf{Concern: Failure analysis.}
+In Section 5.2 and Appendix D (Failure Analysis),
+we added a failure-mode analysis.
+The analysis groups unsuccessful attacks into three categories:
+the malicious tool is not invoked,
+the payload is ignored after invocation,
+and the agent partially follows the payload
+but fails to complete the objective.
+Table 7 clarifies that, for IE and EIC,
+ignored payloads are a dominant failure source,
+which motivates runtime monitoring beyond selection-stage filtering.
+
+\section{Response to Reviewer 1}
+
+\subsection*{Concern 1: Novelty framing and attack-surface positioning}
+
+The reviewer noted that prior work has already shown
+that MCP tools, MCP servers, and tool outputs can be malicious.
+We agree and revised the Abstract, Section 1, Section 2,
+and Section 3.1 accordingly.
+The Abstract no longer claims that MCP tool integration creates
+a wholly novel attack surface.
+Instead, it states that MCP systems expose
+a semantic supply-chain risk
+where attacker-controlled tool metadata and outputs
+can influence tool selection and downstream reasoning.
+
+In the Introduction and Threat Model,
+we similarly replaced novelty-focused wording
+with a more precise formulation:
+A2M is presented as a systematic method
+for exploiting the tool definition and return channels.
+The Related Work section now explicitly discusses prior MCP security studies
+on malicious servers, unsafe tool execution, parasitic toolchains,
+preference manipulation, AMA, ToolHijacker, and ToolTweak.
+The revised text distinguishes A2M by its full-chain optimization:
+metadata optimization for selection
+combined with trace-guided return-payload refinement after invocation.
+
+\subsection*{Concern 2: Information exfiltration mechanism}
+
+The reviewer asked how information is exfiltrated
+if the attacker does not have direct access to victim-side logs.
+In Section 3.3 (Attack Objectives),
+we clarified the IE objective in the Threat Model.
+The revised text states that the attacker manipulates the agent
+into retrieving sensitive data from memory or the local file system
+and sending it as arguments
+to the attacker-controlled malicious tool endpoint.
+Because the attacker controls the malicious MCP server endpoint,
+the exfiltrated value is observable from the request arguments
+received by that endpoint.
+
+\subsection*{Concern 3: Baseline coverage}
+
+In Section 5.1,
+we revised the baseline discussion
+to clarify that Zero-Shot Generation and LLM-GA
+represent different attack paradigms:
+single-pass unoptimized generation
+and scalar-score black-box search without trace feedback.
+We also added AMA as a metadata-only attraction baseline
+and report the comparison in Section 5.2 and Table 2.
+The revised results show that A2M's Attraction phase
+achieves a higher average MTIR than AMA
+($80.7$ versus $75.6$),
+while acknowledging that AMA is stronger on some individual models.
+
+\subsection*{Concern 4: Early definitions of Attraction and Manipulation}
+
+In Section 1,
+we moved the definitions of \emph{Attraction} and \emph{Manipulation}
+to the Introduction.
+The revised text defines Attraction as the selection-stage objective
+of increasing malicious tool invocation probability,
+and Manipulation as the post-invocation objective
+of steering the agent's subsequent reasoning
+toward an attacker-specified target.
+
+\subsection*{Concern 5: Timeline and positioning of related works}
+
+In Section 2,
+we revised the Related Work section
+to avoid describing relevant prior works as concurrent
+when their release timelines indicate otherwise.
+The revised section positions these works by technical focus
+rather than by timeline:
+metadata optimization and tool-selection bias
+are discussed as primarily corresponding to the Attraction stage,
+whereas A2M also optimizes return payloads
+through trace-guided Manipulation.
+
+\section{Response to Reviewer 2}
+
+\subsection*{Concern 1: Cross-query generalization}
+
+The reviewer noted that repeated per-query probing
+may be unrealistic in deployed systems
+and asked whether optimized metadata generalizes beyond the original query.
+In Section 5.2 and Appendix B.2 (Cross-Query Generalization),
+we added a cross-query generalization experiment.
+We optimize malicious metadata on 10 base tasks
+and evaluate the optimized metadata on 50 held-out analogous queries.
+Table 5 reports MTIR ranging from $74.0$ to $90.0$
+across the five evaluated models.
+This suggests that the Attraction phase learns reusable semantic cues
+rather than merely overfitting to one query.
+
+\subsection*{Concern 2: Robustness under deployment drift}
+
+In Sections 5.1 and 5.2,
+we clarified the existing robustness evidence,
+and in Limitations,
+we expanded the discussion of deployment drift.
+The main evaluation already spans 95 tasks,
+six domains,
+and toolsets drawn from 70 MCP servers,
+which creates substantial variation in competing tools.
+At the same time,
+we now explicitly acknowledge that the current study
+does not systematically vary system prompts,
+routing policies,
+tool renaming,
+safety wrappers,
+or the size and composition of competing tool pools.
+These factors are now listed as future work in Limitations.
+
+\subsection*{Concern 3: Baseline coverage}
+
+In Section 5.1,
+we added AMA as a representative metadata-only attraction baseline,
+and in Section 5.2 and Table 2,
+we report the comparison.
+This complements the existing Zero-Shot and LLM-GA baselines
+by directly evaluating tool-selection optimization.
+The revised baseline section now describes each baseline
+as representing a distinct attack paradigm.
+
+\section{Response to Reviewer 3}
+
+\subsection*{Concern 1: Relationship between Attraction and Manipulation}
+
+The reviewer questioned whether Attraction and Manipulation
+should be treated as unrelated goals,
+since the quality of tool returns can affect subsequent behavior.
+In Section 1,
+we revised the Introduction to clarify that these objectives
+are coupled during execution
+but decoupled as optimization stages
+to make the black-box search tractable.
+This revision better reflects the role of the Analyzer--Optimizer loop:
+after initial tool selection,
+the return payload is refined using execution-trace feedback
+to maintain agent trust and steer later reasoning.
+
+\subsection*{Concern 2: Failure analysis for ASR results}
+
+In Section 5.2 and Appendix D (Failure Analysis),
+we added a failure analysis for ASR results.
+For failed attacks on GLM-4.6,
+we categorize failures as:
+tool not invoked,
+ignored payload,
+and partial compliance.
+Table 7 shows that ignored payloads are the dominant failure type
+for IE and EIC,
+while tool non-invocation and partial compliance
+also explain failures in other scenarios.
+This provides a clearer interpretation of the ASR results.
+
+\subsection*{Concern 3: Defense evaluation}
+
+In Section 5.2 and Appendix E.1 (Defense Evaluation),
+we added a ToolTweak-style paraphrase defense evaluation
+in addition to perplexity-based detection
+and the LLM-based auditor.
+Tables 8 and 9 report the detection and paraphrase-defense results.
+The revised appendix shows that paraphrasing reduces MTIR
+for some models,
+but A2M still retains a $72.5$ average MTIR.
+This supports the conclusion that metadata rewriting alone
+does not reliably neutralize optimized attraction.
+
+\subsection*{Concern 4: Figure 2 caption}
+
+In Section 4,
+we corrected the Figure 2 caption.
+The revised caption removes the redundant ``Figure 2:'' prefix
+and rewrites the caption for clarity.
+
+\section{Additional Editorial and Organizational Changes}
+
+We made several additional changes to improve clarity and readability.
+We revised the ReAct and LangChain citations in the experimental setup.
+We moved detailed cross-query generalization and defense evaluation tables
+to the appendix,
+while preserving concise pointers in the main results section.
+We also added Appendix B.3 (Token Accounting) and Table 6,
+which report aggregate token usage,
+estimated GLM-4.6 cost under OpenRouter's Z.ai pricing,
+and estimated average cost per task-scenario.
+
+\end{document}

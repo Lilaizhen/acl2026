@@ -4,7 +4,10 @@ via the Model Context Protocol (MCP)
 introduces a critical security vulnerability
 because agents rely on semantic matching
 to select tools from unverified third-party MCP servers.
-This creates a novel semantic supply-chain attack surface.
+This exposes a semantic supply-chain risk
+in which attacker-controlled tool metadata and outputs
+can influence both tool selection
+and downstream reasoning.
 We introduce \textbf{\methodname{}} (\methodfullname{}),
 a two-stage black-box optimization framework
 designed to systematically hijack MCP agents.
@@ -26,8 +29,8 @@ and achieves high success rates
 on Information Exfiltration, Environment Integrity Compromise, and Reasoning Derailment.
 Furthermore,
 optimized tools exhibit strong transferability to unseen models
-and successfully bypass existing perplexity-based defenses
-and lightweight auditors.
+and successfully bypass existing perplexity-based detection
+and an LLM-based auditor.
 Our findings underscore the fragility of the tool selection layer
 and highlight an urgent need
 for robust vetting and isolation mechanisms
